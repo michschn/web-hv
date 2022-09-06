@@ -2,6 +2,9 @@
   "name": "web-hv",
   "homepage": "https://google.github.io/web-hv/",
   "dependencies": {
+    "@material/mwc-icon-button": "^0.27.0",
+    "@material/mwc-top-app-bar-fixed": "^0.27.0",
+    "@webcomponents/webcomponentsjs": "^2.6.0",
     "lit": "^2.3.1"
   },
   "devDependencies": {

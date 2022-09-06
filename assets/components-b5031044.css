@@ -1,0 +1,263 @@
+/*
+ * Copyright 2018 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+/* Progress Bar */
+.progress-line, .progress-line:before {
+  height: 4px;
+  width: 100%;
+  margin: 0;
+}
+.progress-line {
+  background-color: var(--button-bg-color);
+  display: -webkit-flex;
+  display: flex;
+}
+.progress-line:before {
+  background-color: var(--progress-color);
+  content: '';
+  -webkit-animation: running-progress 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@-webkit-keyframes running-progress {
+  0% { margin-left: 0px; margin-right: 100%; }
+  50% { margin-left: 25%; margin-right: 0%; }
+  100% { margin-left: 100%; margin-right: 0; }
+}
+
+
+/* Error */
+.error {
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid var(--error-color);
+    border-radius: 4px;
+    color: var(--error-color);
+}
+
+/* Scroll bars */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background-color: var(--button-bg-color);
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--subtext-color);
+    border-radius: 0px;
+}
+::-webkit-scrollbar-corner {
+    background-color: var(--button-bg-color);
+}
+
+/** Content panel animation **/
+.content-panel {
+    position:absolute;
+    left:0;
+    top:0;
+    right:0;
+    bottom: 0;
+}
+
+#device-list-content.hide, .content-panel.hide {
+    -webkit-animation:fade-out-and-hide 300ms;
+    -webkit-animation-fill-mode: forwards;
+}
+
+@-webkit-keyframes fade-out-and-hide {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.98);
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+/** Tree view  **/
+.treeview label {
+    display: block;
+    clear: both;
+    cursor: pointer;
+    line-height: 27px;
+    -webkit-user-select: none;
+}
+
+.treeview label x-line-wrap {
+    display: inline-block;
+    transition: all .2s;
+    white-space: nowrap;
+    padding: 0 15px;
+    border-radius: 2px;
+}
+
+.treeview label:is(:hover, .selected:hover, .last_selected:hover,
+                   .hover, .selected.hover, .last_selected.hover) x-line-wrap {
+    background: var(--under-cursor-color);
+}
+
+.treeview label.selected x-line-wrap {
+    background: var(--selected-color);
+}
+
+.treeview label.last_selected x-line-wrap {
+    background: var(--last-selected-color);
+}
+
+.treenode {
+    padding-left: 15px;
+}
+
+.treeview label.with_arrow {
+    padding: 0 25px 0 0;
+}
+
+label.with_arrow span:before {
+    content: ' ';
+    display: inline-block;
+    width: 25px;
+}
+
+label.expandable.with_arrow span:before {
+    float: left;
+    font-family: "Icon-Font";
+    content: '\e5c5'; /* arrow_drop_down */
+    font-size: 18px;
+    text-align: center;
+    transition: all .1s;
+}
+
+label.expandable.closed.with_arrow span:before {
+    transform: rotate(-90deg);
+}
+
+/** Search box **/
+input[type=search]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    --icon-size: 16px;
+    height: var(--icon-size);
+    width: var(--icon-size);
+    display: block;
+    background-image: var(--clear-icon);
+    background-repeat: no-repeat;
+    background-size: var(--icon-size);
+}
+input[type=search]::-webkit-search-cancel-button:hover {
+    opacity: 0.8;
+}
+
+
+/** Context menu **/
+.context-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    z-index: 10000;
+}
+.contextmenu {
+    position: absolute;
+    background: var(--window-bg-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    font-size: 13px;
+    left: 30px;
+    top: 30px;
+}
+.contextmenu a, .contextmenu input {
+    display: block;
+    padding: 6px 15px;
+    line-height: 27px;
+    min-width: 200px;
+    cursor: pointer;
+    transition: all 100ms;
+    -webkit-user-select: none;
+    margin-left: 0px;
+}
+.contextmenu a::before {
+    font-size: 150%;
+    margin-right: 10px;
+    float: left;
+}
+.contextmenu a:hover, .contextmenu a.selected {
+    background: var(--hover-bg-color);
+}
+.contextmenu a:active {
+    color: var(--selected-color);
+}
+.contextmenu a.separator {
+    border-top: 1px solid var(--divider-color);
+}
+
+.contextmenu a.disabled {
+    opacity: 0.5;
+    background: none;
+}
+
+/** Simple button **/
+button {
+    background-color: var(--button-bg-color);
+    border: none;
+    border-radius: 4px;
+    line-height: 30px;
+    height: 30px;
+    padding: 0 20px;
+    box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    transition: color .1s , box-shadow .1s , transform .1s;
+    outline: none;
+    color: var(--text-color);
+}
+
+
+button.icon_btn {
+    padding-left: 0px;
+}
+button.icon_btn::before {
+    padding: 0 5px 0 10px;
+    font-size: 140%;
+    float: left;
+}
+
+button:focus {
+    box-shadow: 0 0 0 1px var(--selected-color);
+}
+
+button:hover {
+    box-shadow: inset 0 0 100px 100px var(--hover-bg-color), 0 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+button:active {
+    box-shadow: inset 0 0 100px 100px var(--hover-bg-color), 0 0 1px 2px rgba(0, 0, 0, 0.4);
+    transform: scale(0.98);
+}
+
+.contextmenu input[type=search] {
+    padding: 2px 15px;
+    -webkit-appearance: none;
+    border-radius: 0px;
+    border: 0;
+    max-width: 500px;
+    width: calc(100vw - 40px);
+    cursor: default;
+}

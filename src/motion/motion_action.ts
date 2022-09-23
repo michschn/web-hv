@@ -17,18 +17,18 @@ import './ui/motion-viewer';
 /**
  * Bootstraps the motion viewer feature.
  */
-export async function motionViewerAction(activityInfo) {
-    resetActiveState();
+export async function motionViewerAction(activityInfo: AppInfo) {
+  resetActiveState();
 
-    const motionViewer = document.createElement('motion-viewer');
-    motionViewer.className = 'content-panel';
-    document.querySelector('#content').append(motionViewer)
+  const motionViewer = document.createElement('motion-viewer');
+  motionViewer.className = 'content-panel';
+  document.querySelector('#content')?.append(motionViewer)
 
-    motionViewer.viewController = createViewController(activityInfo);
+  motionViewer.viewController = createViewController(activityInfo);
 
-    ActiveState.push(function () {
-        adbDevice.closeAll();
-        motionViewer.remove();
-    });
+  ActiveState.push(function () {
+    adbDevice.closeAll();
+    motionViewer.remove();
+  });
 }
 

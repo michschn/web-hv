@@ -4,23 +4,44 @@
   "dependencies": {
     "@material/mwc-icon-button": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
+    "@types/w3c-web-usb": "^1.0.6",
     "@webcomponents/webcomponentsjs": "^2.6.0",
     "lit": "^2.3.1"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-replace": "^4.0.0",
+    "@rollup/plugin-typescript": "^8.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.25.0",
+    "@typescript-eslint/parser": "^5.25.0",
     "@web/dev-server": "^0.1.34",
     "@web/rollup-plugin-copy": "^0.3.0",
     "@web/rollup-plugin-html": "^1.11.0",
+    "@web/test-runner": "^0.13.27",
+    "@web/test-runner-playwright": "^0.8.8",
+    "@webcomponents/webcomponentsjs": "^2.6.0",
     "gh-pages": "^4.0.0",
     "rollup": "^2.79.0",
     "rollup-plugin-minify-html-literals": "^1.2.6",
     "rollup-plugin-summary": "^1.4.3",
-    "rollup-plugin-terser": "^7.0.2"
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^4.8.3",
+    "rimraf": "^3.0.2"
   },
   "scripts": {
-    "serve": "web-dev-server",
-    "build": "rollup -c  scripts/rollup.config.js",
+    "clean": "rimraf build/*",
+    "build": "npm run clean && rollup -c  scripts/rollup.config.js",
+    "lint": "npm run lint:lit-analyzer && npm run lint:eslint",
+    "lint:eslint": "eslint 'src/**/*.ts'",
+    "lint:lit-analyzer": "lit-analyzer",
+    "format": "prettier \"**/*.{cjs,html,js,json,md,ts}\" --ignore-path ./.eslintignore --write",
+    "serve": "tsc --watch --preserveWatchOutput & web-dev-server --watch",
+    "serve:prod": "MODE=prod npm run serve",
+    "test": "npm run test:dev && npm run test:prod",
+    "test:dev": "wtr",
+    "test:watch": "wtr --watch",
+    "test:prod": "MODE=prod wtr",
+    "test:prod:watch": "MODE=prod wtr --watch",
     "deploy": "npm run build && node scripts/deploy-github.js"
   }
 }

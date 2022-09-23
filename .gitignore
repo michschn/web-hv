@@ -1,2 +1,6 @@
+# npm managed dependencies
 /node_modules/
+# rollup generated deployment
 /build/
+# TS compiler generated JS
+/motion/

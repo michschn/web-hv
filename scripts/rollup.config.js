@@ -1,25 +1,47 @@
 import html from '@web/rollup-plugin-html';
+import {copy} from '@web/rollup-plugin-copy';
 import resolve from '@rollup/plugin-node-resolve';
-import {terser} from 'rollup-plugin-terser';
-import minifyHTML from 'rollup-plugin-minify-html-literals';
 import summary from 'rollup-plugin-summary';
+import typescript from '@rollup/plugin-typescript';
 
-export default {
-    plugins: [
-        html({
-            input: 'index.html',
-        }),
-        resolve(),
-        minifyHTML(),
-        terser({
-            ecma: 2020,
-            module: true,
-            warnings: true,
-        }),
-        summary(),
-    ],
-    output: {
-        dir: 'build',
+// These should be converted to modules instead.
+const workerScripts = [
+    'js/ddmlib/*',
+    'js/file_load_worker.js',
+    'js/constants.js',
+    'js/utils.js',
+    'third_party/jszip.min.js',
+]
+
+export default [
+    {
+        plugins: [
+            html({
+                input: 'index.html',
+            }),
+            summary(),
+            copy({
+                patterns: [
+                    'commands/**/*',
+                    'css/*.png',
+                    ...workerScripts
+                ],
+            }),
+        ],
+        output: {
+            dir: 'build',
+        },
     },
-    preserveEntrySignatures: 'strict',
-};
+    {
+        input: 'src/motion/motion_action.ts',
+        output: {
+            file: 'build/motion/motion_action.js',
+            format: 'esm'
+        },
+        plugins: [
+            resolve(),
+            summary(),
+            typescript(),
+        ]
+    }
+]

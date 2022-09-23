@@ -17,47 +17,50 @@ import '@material/mwc-icon-button';
 
 
 import {css, html, LitElement} from 'lit';
+import {customElement, property} from 'lit/decorators.js';
 
 /**
  * Root element of the motion viewer
  */
+@customElement('motion-viewer')
 export class MotionViewerElement extends LitElement {
-    static get styles() {
-        return css`
+  static override styles = css`
       :host {
         display: flex;
         flex-direction: column;
       }`;
-    }
 
-    static get properties() {
-        return {
-            /**
-             * @type {Object}
-             */
-            viewController: {type: Object, attribute: false},
-        };
-    }
 
-    constructor() {
-        super();
-    }
+  @property({attribute: false})
+  viewController?: ViewController;
 
-    render() {
-        return html`
-          <mwc-top-app-bar-fixed>
-            <mwc-icon-button icon="arrow_back" slot="navigationIcon"></mwc-icon-button>
-            <span slot="title">Motion Viewer</span>
-            <mwc-icon-button icon="pause_circle" slot="actionItems"></mwc-icon-button>
-          <div id="contents">
-            <video-view>
-            </video-view>
-            <timeline-view>
-            </timeline-view>
-          </div>
-          </mwc-top-app-bar-fixed>
-          `;
-    }
+
+  constructor() {
+    super();
+  }
+
+  override render() {
+    return html`
+      <mwc-top-app-bar-fixed>
+        <mwc-icon-button icon="arrow_back"
+                         slot="navigationIcon"></mwc-icon-button>
+        <span slot="title">Motion Viewer</span>
+        <mwc-icon-button icon="pause_circle"
+                         slot="actionItems"></mwc-icon-button>
+        <div id="contents">
+          <video-view>
+          </video-view>
+          <timeline-view>
+          </timeline-view>
+        </div>
+      </mwc-top-app-bar-fixed>
+    `;
+  }
 }
 
-window.customElements.define('motion-viewer', MotionViewerElement);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'motion-viewer': MotionViewerElement;
+  }
+}

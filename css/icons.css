@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-@font-face {
-  font-family: "Icon-Font";
-  src: url("fonts/icomoon.ttf");
-  font-weight: normal;
-  font-style: normal;
-}
-
 .icon_btn::before {
-    font-family: "Icon-Font";
+    font-family: "Material Icons";
 }
 
 .ic_refresh::before {
@@ -65,7 +58,7 @@
 .ic_submenu::after {
     content: "\e5c5";
     transform: rotate(-90deg);
-    font-family: "Icon-Font";
+    font-family: "Material Icons";
     float: right;
     line-height: 27px;
     font-size: 18px;

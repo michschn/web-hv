@@ -22,9 +22,16 @@ async function motionViewerActionTrampoline(activityInfo) {
     $("#device-list-content").empty().hide();
     $("#darkThemeSwitch").remove();
 
+    // TODO(michschn): make both github deployment and local dev work.
+    // Was unable to get rollup-replace to work, working around this for now.
+    let githubDeploymentPrefix = '';
+    if (window.location.pathname.startsWith('/web-hv/')) {
+        githubDeploymentPrefix = '/web-hv';
+    }
+
     const {
         motionViewerAction,
-    } = await import("/js/motion/motion_action.js")
+    } = await import(`${githubDeploymentPrefix}/motion/motion_action.js`)
 
     $("#main-progress").hide();
     await motionViewerAction(activityInfo);

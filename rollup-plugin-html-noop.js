@@ -1,1 +1,3 @@
-var a="noop";export{a as default};
+var rollupPluginHtmlNoop = "noop";
+
+export { rollupPluginHtmlNoop as default };

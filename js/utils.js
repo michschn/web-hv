@@ -13,10 +13,10 @@
 // limitations under the License.
 
 function deferred(data) {
-    let a, r;
-    const p = new Promise(function (accept, reject) {
-        a = accept;
-        r = reject;
+	let a, r;
+	const p = new Promise(function(accept, reject) {
+		a = accept;
+		r = reject;
     });
     p.accept = a;
     p.reject = r;
@@ -42,7 +42,7 @@ let ActiveState = [];
 
 function createWorker(url) {
     const worker = new Worker(url);
-    ActiveState.push(function () {
+    ActiveState.push(function() {
         worker.terminate();
     });
     return worker;
@@ -50,7 +50,7 @@ function createWorker(url) {
 
 function createUrl(data) {
     const url = URL.createObjectURL(data);
-    ActiveState.push(function () {
+    ActiveState.push(function() {
         URL.revokeObjectURL(url);
     });
     return url;
@@ -59,7 +59,7 @@ function createUrl(data) {
 function doXhr(url, responseType) {
     const result = deferred();
     const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function () {
+    xhr.onreadystatechange = function() {
         if (this.readyState == 4) {
             if (this.status == 200) {
                 result.accept(this.response);
@@ -75,31 +75,20 @@ function doXhr(url, responseType) {
 }
 
 async function saveFile(fileName, url) {
-    const a = $("<a>").attr({href: url, download: fileName}).appendTo(
-        document.body);
+    const a = $("<a>").attr({href:url, download:fileName}).appendTo(document.body);
     a.get(0).click();
-    setTimeout(function () {
+    setTimeout(function() {
         a.remove();
     }, 0);
 }
 
-/**
- * Adds a node displaying the error message in the continer
- */
-$.fn.showError = function (msg) {
-    $("#main-progress").hide();
-    return this.empty().removeClass("hide").removeClass("hidden").append(
-        $("<span>").text(msg).addClass("error"));
-}
-
 function showContext(menu, callback, e) {
-    const elementFactory = function (el, hideMenu) {
-        const menuClickHandler = function () {
+    const elementFactory = function(el, hideMenu) {
+        const menuClickHandler = function() {
             if (!$(this).hasClass(CLS_DISABLED)) {
                 if (!callback.call($(this).data("info"), $(this))) {
-                    hideMenu();
+                  hideMenu();
                 }
-
             }
         };
 
@@ -110,8 +99,7 @@ function showContext(menu, callback, e) {
                 addSeparator = true;
                 continue;
             }
-            const item = $("<a class=icon_btn>").text(m.text).addClass(
-                m.icon).appendTo(el).data("info", m).click(menuClickHandler);
+            const item = $("<a class=icon_btn>").text(m.text).addClass(m.icon).appendTo(el).data("info", m).click(menuClickHandler);
             if (addSeparator) {
                 item.addClass("separator");
             }
@@ -136,14 +124,14 @@ function showPopup(e, elementFactory) {
     const wrapper = $("<div class='context-wrapper'>").appendTo(document.body);
     const el = $("<div class='contextmenu'>").appendTo(wrapper);
 
-    const documentMouseDown = function (e) {
+    const documentMouseDown = function(e) {
         if (!el.has(e.toElement).length) {
             hideMenu();
         }
     };
 
     $(document).mousedown(documentMouseDown);
-    const hideMenu = function () {
+    const hideMenu = function() {
         wrapper.remove();
         $(document).unbind("mousedown", documentMouseDown);
         wrapper.trigger("popup_closed");
@@ -152,17 +140,13 @@ function showPopup(e, elementFactory) {
     elementFactory(el, hideMenu);
     el.show().css({
         left: Math.min(e.pageX, $(document).width() - el.width() - 10),
-        top: Math.min(e.pageY, $(document).height() - el.height() - 10)
-    });
+        top: Math.min(e.pageY, $(document).height() - el.height() - 10)});
 
     return wrapper;
 }
 
 function toast(msg) {
-    $("<div class=toast>").text(msg).appendTo($("#content")).animate(
-        {top: 10, opacity: 1}).delay(5000).fadeOut(300, function () {
-        $(this).remove();
-    });
+    $("<div class=toast>").text(msg).appendTo($("#content")).animate({top: 10, opacity:1}).delay(5000).fadeOut(300, function() { $(this).remove(); });
 }
 
 /**
@@ -192,31 +176,4 @@ function base64ToUint8Array(base64String) {
         bytes[i] = ascii;
     }
     return bytes
-}
-
-function sleep(delayMilliseconds) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, delayMilliseconds);
-    });
-}
-
-function setDifference(setA, setB) {
-    const _difference = new Set(setA);
-    for (const elem of setB) {
-        if (_difference.has(elem)) {
-            _difference.delete(elem);
-        } else {
-            _difference.add(elem);
-        }
-    }
-    return _difference;
-}
-
-function defineTemplate(templateId, templateContents) {
-    const templateElement = document.createElement("template");
-    // TODO use something better than innerHTML to keep templates local to the
-    // webcomponents
-    templateElement.id = templateId
-    templateElement.innerHTML = templateContents
-    document.body.append(templateElement)
 }

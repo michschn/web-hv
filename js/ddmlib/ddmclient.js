@@ -541,7 +541,6 @@ class JdwpController {
         req.writeBytes(commandData);
         const reader = await this.jdwp.writeChunk("VUOP", req);
         throwIfFail(reader);
-        return readObject(reader)
     }
 }
 

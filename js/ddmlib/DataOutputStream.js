@@ -53,10 +53,6 @@ DataOutputStream.prototype.writeFloat = function(number, pos) {
     this.writeInt(arr[0]);
 }
 
-DataOutputStream.prototype.writeBoolean = function(bool, pos) {
-    this.writeByte(bool ? 1 : 0, pos)
-}
-
 DataOutputStream.prototype.writeStr = function(str, doNotWriteLen) {
     const buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
     let bufView = new Uint16Array(buf);

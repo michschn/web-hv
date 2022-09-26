@@ -2044,16 +2044,16 @@ MotionViewerElement = __decorate([
  * Bootstraps the motion viewer feature.
  */
 async function motionViewerAction(activityInfo) {
+    // resetActiveState();
     var _a;
-    resetActiveState();
     const motionViewer = document.createElement('motion-viewer');
     motionViewer.className = 'content-panel';
     (_a = document.querySelector('#content')) === null || _a === void 0 ? void 0 : _a.append(motionViewer);
     motionViewer.viewController = createViewController(activityInfo);
-    ActiveState.push(function () {
-        adbDevice.closeAll();
-        motionViewer.remove();
-    });
+    // ActiveState.push(function () {
+    //   adbDevice.closeAll();
+    //   motionViewer.remove();
+    // });
 }
 
 export { motionViewerAction };

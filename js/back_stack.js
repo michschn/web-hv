@@ -10,11 +10,6 @@ var backStack = (function () {
             $("#main-title-wrapper").html("<h2>Mirror android screen</h2>");
             activityListAction = deviceMirrorAction;
             base += "?mode=mirror";
-        } else if (urlParams.get("mode") === "motion") {
-            // Switch to motion workspace mode
-            $("#main-title-wrapper").html("<h2>Motion workspace</h2>");
-            activityListAction = motionViewerActionTrampoline;
-            base += "?mode=motion";
         }
 
         history.replaceState({}, "", base);

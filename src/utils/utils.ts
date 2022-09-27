@@ -12,23 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import './ui/motion-viewer';
-
-/**
- * Bootstraps the motion viewer feature.
- */
-export async function motionViewerAction(activityInfo: AppInfo) {
-  resetActiveState();
-
-  const motionViewer = document.createElement('motion-viewer');
-  motionViewer.className = 'content-panel';
-  document.querySelector('#content')?.append(motionViewer)
-
-  motionViewer.viewController = createViewController(activityInfo);
-
-  ActiveState.push(function () {
-    adbDevice.closeAll();
-    motionViewer.remove();
-  });
+/** Promise that completes after the specified `timeMs` */
+export function delay(timeMs: number): Promise<void> {
+  return new Promise<void>(complete => setTimeout(complete, timeMs));
 }
-

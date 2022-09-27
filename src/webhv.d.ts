@@ -29,16 +29,14 @@ declare let ActiveState: Array<StateCleanup>;
 declare function resetActiveState(): void;
 
 interface ViewController {
+  loadViewList(): Promise<any>;
 
-  loadViewList(): Promise<any>
+  captureView(viewName: string): Promise<any>;
 
-  captureView(viewName: string): Promise<any>
+  profileView(viewName: string): Promise<any>;
 
-  profileView(viewName: string): Promise<any>
-
-  customCommand(viewName: string, commandData: Uint8Array): Promise<any>
+  customCommand(viewName: string, commandData: Uint8Array): Promise<any>;
 }
-
 
 declare const TYPE_ERROR = -1;
 declare const TYPE_ZIP = 0;
@@ -50,35 +48,41 @@ declare const TYPE_TIME_LAPSE_BUG_REPORT = 5;
 declare const TYPE_TIME_LAPSE_BUG_REPORT_DEPRECATED = 6;
 
 declare type APP_INFO_TYPE =
-    | typeof TYPE_ERROR
-    | typeof TYPE_ZIP
-    | typeof TYPE_OLD
-    | typeof TYPE_JDWP
-    | typeof TYPE_BUG_REPORT
-    | typeof TYPE_BUG_REPORT_V2
-    | typeof TYPE_TIME_LAPSE_BUG_REPORT
-    | typeof TYPE_TIME_LAPSE_BUG_REPORT_DEPRECATED;
+  | typeof TYPE_ERROR
+  | typeof TYPE_ZIP
+  | typeof TYPE_OLD
+  | typeof TYPE_JDWP
+  | typeof TYPE_BUG_REPORT
+  | typeof TYPE_BUG_REPORT_V2
+  | typeof TYPE_TIME_LAPSE_BUG_REPORT
+  | typeof TYPE_TIME_LAPSE_BUG_REPORT_DEPRECATED;
 
 interface AppInfo {
-  type: APP_INFO_TYPE,
-  pid: number,
-  device: AdbDevice,
-  id: string,
-  density: number,
-  sdk_version: number,
-  name: string,
-  use_new_api: boolean,
+  type: APP_INFO_TYPE;
+  pid: number;
+  device: AdbDevice;
+  id: string;
+  density: number;
+  sdk_version: number;
+  name: string;
+  use_new_api: boolean;
   /** process name */
-  pname: string,
+  pname: string;
   /**
    * A blob URL to the process icon.
    *
    * `value` will be set to the result of promise.
    */
-  icon: Promise<string> & { value?: string }
+  icon: Promise<string> & { value?: string };
 }
 
 declare function createViewController(appInfo: AppInfo): ViewController;
+
+declare const ADB_INTERFACE_CLASS: number;
+declare const ADB_INTERFACE_SUB_CLASS: number;
+declare const ADB_INTERFACE_PROTOCOL: number;
+
+declare const ADB_DEVICE_FILTER: Record<any, any>;
 
 declare const STATE_DISCONNECTED = 0;
 declare const STATE_CONNECTING = 1;
@@ -86,18 +90,22 @@ declare const STATE_ERROR = 2;
 declare const STATE_UNAUTHORIZED = 3;
 declare const STATE_CONNECTED_DEVICE = 4;
 
-declare type  ADB_DEVICE_STATE =
-    | typeof STATE_DISCONNECTED
-    | typeof STATE_CONNECTING
-    | typeof STATE_ERROR
-    | typeof STATE_UNAUTHORIZED
-    | typeof STATE_CONNECTED_DEVICE;
+declare type ADB_DEVICE_STATE =
+  | typeof STATE_DISCONNECTED
+  | typeof STATE_CONNECTING
+  | typeof STATE_ERROR
+  | typeof STATE_UNAUTHORIZED
+  | typeof STATE_CONNECTED_DEVICE;
 
 declare class AdbDevice {
-  private constructor(device: USBDevice, interface: USBInterface);
+  constructor(device: USBDevice, interface: USBInterface);
+
+  stateCallback?: (state: ADB_DEVICE_STATE) => void;
 
   device: USBDevice;
+
   interface: USBInterface;
+
   state: ADB_DEVICE_STATE;
 
   connect(): Promise<void>;
@@ -112,7 +120,6 @@ declare class AdbDevice {
 
   sendFile(deviceTargetPath: string, sourceUrl: string): Promise<void>;
 }
-
 
 interface ResponseMerger<T> {
   result: T;
@@ -136,20 +143,24 @@ declare const STREAM_OPEN = 0;
 declare const STREAM_CLOSING = 1;
 declare const STREAM_CLOSED = 2;
 
-declare type  STREAM_STATE =
-    | typeof STREAM_OPEN
-    | typeof STREAM_CLOSING
-    | typeof STREAM_CLOSED;
+declare type STREAM_STATE =
+  | typeof STREAM_OPEN
+  | typeof STREAM_CLOSING
+  | typeof STREAM_CLOSED;
 
 declare class AdbStream {
   private constructor(device: AdbDevice, localId: number);
 
   device: AdbDevice;
+
   localId: number;
+
   remoteId: number;
+
   remoteIdResolved: Promise<number>;
 
   state: STREAM_STATE;
+
   keepOpen: boolean;
 
   read(length: number, callback: (result: Uint8Array) => void): void;
@@ -162,5 +173,3 @@ declare class AdbStream {
 
   close(): void;
 }
-
-declare let adbDevice: AdbDevice;

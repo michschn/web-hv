@@ -20,12 +20,8 @@ npm i
 To run the dev server and open the project in a new browser tab:
 
 ```bash
-npm run serve
+npm run start
 ```
-
-web-hv uses modern-web.dev's [@web/dev-server](https://www.npmjs.com/package/@web/dev-server),
-see [modern-web.dev's Web Dev Server documentation](https://modern-web.dev/docs/dev-server/overview/) for more
-information.
 
 ### Production build
 

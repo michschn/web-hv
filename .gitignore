@@ -1,6 +1,15 @@
-# npm managed dependencies
+## editors
+/.idea
+/.vscode
+
+## npm
 /node_modules/
-# rollup generated deployment
-/build/
-# TS compiler generated JS
-/motion/
+/npm-debug.log
+
+# build
+/dist/
+/out-tsc/
+
+storybook-static
+custom-elements.json
+coverage

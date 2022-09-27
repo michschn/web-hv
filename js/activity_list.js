@@ -84,6 +84,19 @@ var activityListAction = function (initializer, skipPush) {
             if (subText != null) {
                 $('<div class="subtext">').appendTo(entry).text(subText);
             }
+            if (l.device) {
+                const motionLink = new URL(window.location);
+                motionLink.pathname =  motionLink.pathname.replace(/(\/[^\/]*)$/, '/motion.html');
+                motionLink.search = '';
+                motionLink.searchParams.set('serial', l.device.device.serialNumber);
+                motionLink.searchParams.set('pid', l.pid);
+                motionLink.searchParams.set('pname', l.pname);
+                motionLink.searchParams.set('wid', l.id);
+                $(`<a class="motion" href="${motionLink}">`).appendTo(entry).text('M').click(function( event ) {
+                    event.stopPropagation();
+                    // Do something
+                });
+            }
         }
     }
 

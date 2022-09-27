@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import '@material/mwc-top-app-bar-fixed';
-import '@material/mwc-icon-button';
-
-
 import {css, html, LitElement} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+
+import '@material/mwc-top-app-bar-fixed';
+import '@material/mwc-icon-button';
 
 /**
  * Root element of the motion viewer
@@ -25,15 +24,14 @@ import {customElement, property} from 'lit/decorators.js';
 @customElement('motion-viewer')
 export class MotionViewerElement extends LitElement {
   static override styles = css`
-      :host {
-        display: flex;
-        flex-direction: column;
-      }`;
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+  `;
 
-
-  @property({attribute: false})
+  @property({ attribute: false })
   viewController?: ViewController;
-
 
   constructor() {
     super();
@@ -42,22 +40,23 @@ export class MotionViewerElement extends LitElement {
   override render() {
     return html`
       <mwc-top-app-bar-fixed>
-        <mwc-icon-button icon="arrow_back"
-                         slot="navigationIcon"></mwc-icon-button>
+        <mwc-icon-button
+          icon="arrow_back"
+          slot="navigationIcon"
+        ></mwc-icon-button>
         <span slot="title">Motion Viewer</span>
-        <mwc-icon-button icon="pause_circle"
-                         slot="actionItems"></mwc-icon-button>
+        <mwc-icon-button
+          icon="pause_circle"
+          slot="actionItems"
+        ></mwc-icon-button>
         <div id="contents">
-          <video-view>
-          </video-view>
-          <timeline-view>
-          </timeline-view>
+          <video-view> </video-view>
+          <timeline-view> </timeline-view>
         </div>
       </mwc-top-app-bar-fixed>
     `;
   }
 }
-
 
 declare global {
   interface HTMLElementTagNameMap {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {delay} from './utils';
+import { delay } from './utils';
 
 /** Starts the promise to try executing. */
 type RetryableFunction<T> = () => Promise<T>;

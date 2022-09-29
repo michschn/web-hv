@@ -35,8 +35,7 @@ export class Disposer implements Disposable {
    * @param multiShot Whether the disposer can be used for multiple dispose
    * cycles.
    */
-  constructor(private multiShot: boolean = false) {
-  }
+  constructor(private multiShot: boolean = false) {}
 
   /**
    * Registers the function to be called upon `dispose()`.
@@ -45,9 +44,7 @@ export class Disposer implements Disposable {
    */
   addFunction(disposable: DisposableFn) {
     if (!this._disposables) {
-      throw new Error(
-        'Adding new disposabled to already disposed one-shot disposer'
-      );
+      throw new Error('Adding new disposabled to already disposed one-shot disposer');
     }
     this._disposables!.push(disposable);
   }
@@ -64,9 +61,7 @@ export class Disposer implements Disposable {
     callback: EventListenerOrEventListenerObject,
     options?: AddEventListenerOptions | boolean
   ) {
-    this.addFunction(() =>
-      eventTarget.removeEventListener(type, callback, options)
-    );
+    this.addFunction(() => eventTarget.removeEventListener(type, callback, options));
     eventTarget.addEventListener(type, callback, options);
   }
 

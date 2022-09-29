@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {singleton} from 'tsyringe';
+import { singleton } from 'tsyringe';
 
 /**
  * Tracks activity that should show a progress bar.

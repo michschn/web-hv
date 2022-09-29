@@ -3,6 +3,7 @@
   "homepage": "https://google.github.io/web-hv/",
   "type": "module",
   "dependencies": {
+    "@material/mwc-icon": "^0.27.0",
     "@material/mwc-icon-button": "^0.27.0",
     "@material/mwc-linear-progress": "^0.27.0",
     "@material/mwc-top-app-bar-fixed": "^0.27.0",
@@ -64,6 +65,7 @@
     "deploy": "npm run build && node deploy-github.js"
   },
   "prettier": {
+    "printWidth": 100,
     "singleQuote": true,
     "arrowParens": "avoid",
     "proseWrap": "always"

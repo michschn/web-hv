@@ -12,20 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {fixedRetryDelay, NonRetryableError, retry} from '../utils/retry';
+import { fixedRetryDelay, NonRetryableError, retry } from '../utils/retry';
+import { checkNotNull, checkState } from '../utils/preconditions';
+import { isNamedError, namedError } from '../utils/utils';
 
-export type State =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'error'
-  | 'unauthorized';
+export type State = OkState | ErrorState;
+
+interface OkState {
+  type: 'disconnected' | 'connecting' | 'connected' | 'unauthorized';
+}
+
+interface ErrorState {
+  type: 'error';
+  detail: 'deviceNotFound' | 'processNotFound' | 'windowNotFound' | 'unknown';
+  message?: string;
+  exception?: unknown;
+}
 
 /**
  * Connection description that can be serialized to a URL for bookmarkability.
  */
 export class MotionConnection extends EventTarget {
   private _adbDevice?: AdbDevice;
+  private _jdwp?: jdwp;
 
   /**
    * @param deviceId Device serial number
@@ -65,7 +74,14 @@ export class MotionConnection extends EventTarget {
     return new MotionConnection(deviceId, pid, processName, windowId);
   }
 
-  private _state: State = 'disconnected';
+  // Overall state of this motion connection.
+  // This is a composite of the ADB, JDWP and DDMS state.
+  private _state: State = { type: 'disconnected' };
+
+  // Whether the _adbDevice is in the connected state.
+  private _deviceConnected = false;
+  // Completes when as soon as `_deviceConnected === true`
+  private _deviceConnectedPromise = deferred<void>();
 
   get state() {
     return this._state;
@@ -77,47 +93,122 @@ export class MotionConnection extends EventTarget {
   }
 
   async connect() {
-    if (this._state !== 'disconnected') {
+    if (this._state.type !== 'disconnected') {
       throw new Error(`Unable to connect. Unexpected state ${this._state}`);
     }
 
-    console.assert(!this._adbDevice);
+    checkState(!this._adbDevice);
 
     try {
-      this.state = 'connecting';
-      this._adbDevice = await createAdbDevice(this.deviceId);
-      this._adbDevice.stateCallback = this._connectionStateChanges.bind(this);
-
+      this.state = { type: 'connecting' };
+      try {
+        this._adbDevice = await createAdbDevice(this.deviceId);
+      } catch (e) {
+        if (isNamedError(e, 'DeviceNotFound')) {
+          this.state = {
+            type: 'error',
+            detail: 'deviceNotFound',
+            message: `No device with serial ${this.deviceId} found`,
+          };
+          return;
+        }
+        throw e;
+      }
+      this._adbDevice.stateCallback = this._deviceStateChanges.bind(this);
       await this._adbDevice.connect();
+
+      await this._deviceConnectedPromise;
+
+      checkState(!this._jdwp);
+      this._jdwp = new jdwp(this.processId, this._adbDevice);
+      let processName: string;
+      try {
+        processName = await this.readProcessName();
+      } catch (e) {
+        if (e instanceof Error && e.name === 'StreamDisconnectedError') {
+          // An invalid PID caused the stream to be closed (via remote command)
+          // upon trying to connect - this happens
+          this.state = {
+            type: 'error',
+            detail: 'processNotFound',
+            message: `Process with ID ${this.processId} not found`,
+          };
+          return;
+        }
+        throw e;
+      }
+
+      if (processName !== this.processName) {
+        this.state = {
+          type: 'error',
+          detail: 'processNotFound',
+          message: `Process ID ${this.processId} reported unexpected name (${processName}).`,
+        };
+        return;
+      }
+
+      this.state = { type: 'connected' };
     } catch (e) {
-      this.state = 'error';
+      this.state = { type: 'error', detail: 'unknown', exception: e };
       throw e;
     }
   }
 
   async disconnect() {}
 
-  private _connectionStateChanges(state: ADB_DEVICE_STATE) {
+  private _deviceStateChanges(state: ADB_DEVICE_STATE) {
+    let deviceConnected = false;
     switch (state) {
       case STATE_DISCONNECTED:
         this._adbDevice?.closeAll();
         this._adbDevice?.disconnect();
         this._adbDevice = undefined;
-        this.state = 'disconnected';
+        this.state = { type: 'disconnected' };
         break;
       case STATE_CONNECTING:
-        this.state = 'connecting';
+        this.state = { type: 'connecting' };
         break;
       case STATE_ERROR:
-        this.state = 'error';
+        this.state = {
+          type: 'error',
+          detail: 'unknown',
+          exception: new Error('adbDevice reported error state'),
+        };
         break;
       case STATE_UNAUTHORIZED:
-        this.state = 'unauthorized';
+        this.state = { type: 'unauthorized' };
         break;
       case STATE_CONNECTED_DEVICE:
-        this.state = 'connected';
+        this.state = { type: 'connecting' };
+        deviceConnected = true;
         break;
     }
+
+    if (deviceConnected && !this._deviceConnected) {
+      this._deviceConnected = true;
+      this._deviceConnectedPromise.accept();
+    } else if (!deviceConnected && this._deviceConnected) {
+      this._deviceConnected = false;
+      this._deviceConnectedPromise = deferred();
+    }
+  }
+
+  /** Sends an HELO packet to initialize the connection and read the process name. */
+  async readProcessName(): Promise<string> {
+    const jdwp = checkNotNull(this._jdwp);
+
+    const data = await jdwp.writeChunk('HELO', [0, 0, 0, 1]);
+    const serverVersion = data.readInt();
+    const processId = data.readInt();
+
+    const vmDescriptionLength = data.readInt();
+    const processNameLength = data.readInt();
+    const vmDescription = data.readStr(vmDescriptionLength);
+    const processName = data.readStr(processNameLength);
+
+    console.log(`Connected to process ${processId} (${processName})`);
+
+    return processName;
   }
 }
 
@@ -126,7 +217,7 @@ async function createAdbDevice(serial: string): Promise<AdbDevice> {
   const actualDevice = devices.find(device => device.serialNumber === serial);
 
   if (!actualDevice) {
-    throw new Error(`No device with serial ${serial} found`);
+    throw namedError('DeviceNotFound', `No device with serial ${serial} found`);
   }
 
   const adbInterface = await retry(() => claimAdbInterface(actualDevice), {
@@ -155,7 +246,7 @@ async function claimAdbInterface(device: USBDevice): Promise<USBInterface> {
   );
 
   if (adbInterface == null) {
-    throw new NonRetryableError('No interface found');
+    throw new NonRetryableError('Device does not support ADB interface');
   }
   await device.claimInterface(adbInterface.interfaceNumber);
   return adbInterface;

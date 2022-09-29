@@ -28,56 +28,6 @@ declare let ActiveState: Array<StateCleanup>;
  */
 declare function resetActiveState(): void;
 
-interface ViewController {
-  loadViewList(): Promise<any>;
-
-  captureView(viewName: string): Promise<any>;
-
-  profileView(viewName: string): Promise<any>;
-
-  customCommand(viewName: string, commandData: Uint8Array): Promise<any>;
-}
-
-declare const TYPE_ERROR = -1;
-declare const TYPE_ZIP = 0;
-declare const TYPE_OLD = 1;
-declare const TYPE_JDWP = 2;
-declare const TYPE_BUG_REPORT = 3;
-declare const TYPE_BUG_REPORT_V2 = 4;
-declare const TYPE_TIME_LAPSE_BUG_REPORT = 5;
-declare const TYPE_TIME_LAPSE_BUG_REPORT_DEPRECATED = 6;
-
-declare type APP_INFO_TYPE =
-  | typeof TYPE_ERROR
-  | typeof TYPE_ZIP
-  | typeof TYPE_OLD
-  | typeof TYPE_JDWP
-  | typeof TYPE_BUG_REPORT
-  | typeof TYPE_BUG_REPORT_V2
-  | typeof TYPE_TIME_LAPSE_BUG_REPORT
-  | typeof TYPE_TIME_LAPSE_BUG_REPORT_DEPRECATED;
-
-interface AppInfo {
-  type: APP_INFO_TYPE;
-  pid: number;
-  device: AdbDevice;
-  id: string;
-  density: number;
-  sdk_version: number;
-  name: string;
-  use_new_api: boolean;
-  /** process name */
-  pname: string;
-  /**
-   * A blob URL to the process icon.
-   *
-   * `value` will be set to the result of promise.
-   */
-  icon: Promise<string> & { value?: string };
-}
-
-declare function createViewController(appInfo: AppInfo): ViewController;
-
 declare const ADB_INTERFACE_CLASS: number;
 declare const ADB_INTERFACE_SUB_CLASS: number;
 declare const ADB_INTERFACE_PROTOCOL: number;
@@ -143,10 +93,7 @@ declare const STREAM_OPEN = 0;
 declare const STREAM_CLOSING = 1;
 declare const STREAM_CLOSED = 2;
 
-declare type STREAM_STATE =
-  | typeof STREAM_OPEN
-  | typeof STREAM_CLOSING
-  | typeof STREAM_CLOSED;
+declare type STREAM_STATE = typeof STREAM_OPEN | typeof STREAM_CLOSING | typeof STREAM_CLOSED;
 
 declare class AdbStream {
   private constructor(device: AdbDevice, localId: number);
@@ -172,4 +119,112 @@ declare class AdbStream {
   sendReady(): void;
 
   close(): void;
+}
+
+declare class jdwp {
+  static STATUS_DISCONNECTED: number;
+  static STATUS_CONNECTING: number;
+  static STATUS_CONNECTED: number;
+
+  constructor(pid: number, device: AdbDevice);
+
+  readonly device: AdbDevice;
+  readonly pid: number;
+  readonly status: number;
+
+  destroy(): void;
+
+  /**
+   * Writes a chunk with the specified payload, then waits for the response.
+   *
+   * NOTE: there are multiple failure modes: communication failure will result
+   * in a rejected promise, while application-level errors are indicated via
+   * the `chunkType`.
+   *
+   * @param type the 4-byte DDM chunk type, either as an ASCII string or an
+   *   32-bit int
+   * @param data byte data to send as a chunk argument. all numbers are
+   *   interpreted as an unsigned 8-bit number.
+   * @return DataInputStream with the position starting at the response
+   *   payload. The chunk type as responed by the server is already consumed,
+   *   and exposed as the `chunkType` property.
+   */
+  writeChunk(
+    type: string | number,
+    data: DataOutputStream | Array<number>
+  ): Promise<DataInputStream & { chunkType: number }>;
+}
+
+/**
+ * Reads a byte buffer sequentially.
+ *
+ * DANGER: This API is error-prone, and the encoding not well-defined. Use
+ * protobufs for new API.
+ */
+declare class DataOutputStream {
+  static intMax: number;
+  static shortMax: number;
+  static intSignedMax: number;
+
+  // Array of numbers which are interpreted as bytes (0-255)
+  data: Array<number>;
+  highFirst: boolean; // default true
+
+  writeByte(byte: number, position?: number): void;
+
+  writeBytes(bytes: Array<number>, position?: number): void;
+
+  writeInt(int: number, position: number): void;
+
+  writeFloat(int: number, position: number): void;
+
+  writeStr(str: string, doNotWriteLen?: boolean): void;
+}
+
+declare function deferred<T>(): Promise<T> & {
+  accept: (value: T) => void;
+  reject: (reason?: any) => void;
+};
+
+/**
+ * Reads a byte buffer sequentially.
+ *
+ * DANGER: This API is error-prone, and the encoding not well-defined. Use
+ * protobufs for new API.
+ */
+declare class DataInputStream {
+  constructor(data: Uint8Array);
+
+  data: Uint8Array;
+  pos: number;
+
+  /** Consumes and returns a byte from the stream. */
+  read(): number;
+
+  /** Consumes and returns a signed 32-bit integer from the stream. */
+  readInt(): number;
+
+  /** Consumes and returns a signed 16-bit integer from the stream. */
+  readShort(): number;
+
+  /** Consumes and returns a float (32-bit) from the stream. */
+  readFloat(): number;
+
+  /** Consumes and returns a float (64-bit) from the stream. */
+  readDouble(): number;
+
+  /**
+   * Consumes a string from `length` UTF-16 codepoints.
+   * If the length is not specified, it is first read as an 32-bit int from the
+   * stream
+   */
+  readStr(length?: number): string;
+
+  /**
+   * Consumes a string of ASCII characters.
+   *
+   * DANGER: the server side implementation sends UTF-8, thus this won't decode
+   * correctly for non-ASCII characters
+   */
+  readStrSmall(): string;
 }

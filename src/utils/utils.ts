@@ -16,3 +16,34 @@
 export function delay(timeMs: number): Promise<void> {
   return new Promise<void>(complete => setTimeout(complete, timeMs));
 }
+
+/**
+ * A `Promise` to be completed
+ */
+export class Deferred<T> extends Promise<T> {
+  readonly resolve: (value: T) => void;
+  readonly reject: (reason?: any) => void;
+
+  constructor() {
+    let capturedResolve: (value: T) => void;
+    let capturedReject: (reason?: any) => void;
+
+    super((resolve, reject) => {
+      capturedResolve = resolve;
+      capturedReject = reject;
+    });
+
+    this.resolve = capturedResolve!;
+    this.reject = capturedReject!;
+  }
+}
+
+export function namedError(name: string, message?: string): Error {
+  const result = new Error(message);
+  result.name = name;
+  return result;
+}
+
+export function isNamedError(e: unknown, name: string): e is Error {
+  return e instanceof Error && e.name === name;
+}

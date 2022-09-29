@@ -15,8 +15,8 @@
 import 'reflect-metadata';
 import './motion-app';
 
-import {container} from 'tsyringe';
-import {MotionConnection} from './model/motion_connection';
+import { container } from 'tsyringe';
+import { MotionConnection } from './model/motion_connection';
 
 (function main() {
   let motionConnection: MotionConnection;

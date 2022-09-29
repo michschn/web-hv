@@ -31,7 +31,9 @@ jdwp.prototype._onDisconnect = function () {
     this.status = this.STATUS_DISCONNECTED;
     for (let i = 0; i < this.callbacks.length; i++) {
         if (this.callbacks[i]) {
-            this.callbacks[i].reject();
+            const error = new Error('ADB stream closed');
+            error.name = 'StreamDisconnectedError';
+            this.callbacks[i].reject(error);
         }
     }
     this.callbacks = [];

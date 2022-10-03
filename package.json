@@ -24,7 +24,7 @@
     "@angular/compiler-cli": "^14.2.0",
     "@types/jasmine": "~4.0.0",
     "@types/w3c-web-usb": "^1.0.6",
-    "gh-pages": "^4.0.0",
+    "angular-cli-ghpages": "^1.0.3",
     "jasmine-core": "~4.3.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
@@ -42,7 +42,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "deploy": "npm run build && node deploy-github.js"
+    "deploy": "ng deploy --base-href=/web-hv/"
   },
   "prettier": {
     "printWidth": 100,

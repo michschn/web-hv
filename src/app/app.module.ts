@@ -24,9 +24,11 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ProgressTracker } from '../utils/progress';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MotionViewerComponent } from './motion-viewer/motion-viewer.component';
+import { UiModule } from '../ui/ui.module';
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, MotionViewerComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -35,6 +37,7 @@ import { MatMenuModule } from '@angular/material/menu';
     MatProgressBarModule,
     MatButtonModule,
     MatMenuModule,
+    UiModule,
   ],
   providers: [
     {

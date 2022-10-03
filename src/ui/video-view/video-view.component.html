@@ -14,4 +14,10 @@
   ~ limitations under the License.
   -->
 
-📺recording📺
+<div *ngIf="!source" class="no-source" label="No video source!">📺</div>
+<div *ngIf="source">
+
+  <canvas></canvas>
+
+
+</div>

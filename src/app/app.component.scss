@@ -14,6 +14,29 @@
  * limitations under the License.
  */
 
-.spacer {
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-content: stretch;
+  align-items: stretch;
+}
+
+.header-spacer {
   flex: 1 1 auto;
+}
+
+mat-toolbar {
+  flex: 0 0 64px;
+}
+
+.content {
+  display: flex;
+  flex-grow: 1;
+  overflow: scroll;
+  align-content: stretch;
+}
+
+app-motion-viewer {
+  flex-grow: 1;
 }

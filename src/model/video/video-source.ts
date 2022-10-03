@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,33 +14,8 @@
  * limitations under the License.
  */
 
-:host {
-  display: flex;
-  flex-direction: row;
-  padding: 8px;
-  gap: 8px;
-}
-
-.left-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 0 1 33%;
-  align-content: stretch;
-  align-items: stretch;
-}
-
-.right-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 1 0 300px;
-  gap: 8px;
-}
-
-ui-video-view {
-  flex-grow: 1;
-}
-
-
-ui-timeline-view {
-  flex-grow: 1;
+export interface VideoSource {
+  readonly aspectRatio: number;
+  readonly width: number;
+  readonly height: number
 }

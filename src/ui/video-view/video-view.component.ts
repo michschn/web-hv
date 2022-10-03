@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { VideoSource } from '../../model/video/video-source';
 
 @Component({
   selector: 'ui-video-view',
   templateUrl: './video-view.component.html',
   styleUrls: ['./video-view.component.scss'],
 })
-export class VideoViewComponent implements OnInit {
+export class VideoViewComponent {
   constructor() {}
 
-  ngOnInit(): void {}
+  @Input()
+  source?: VideoSource;
+
 }

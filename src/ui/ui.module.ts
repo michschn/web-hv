@@ -19,10 +19,11 @@ import { VideoViewComponent } from './video-view/video-view.component';
 import { TimelineViewComponent } from './timeline-view/timeline-view.component';
 import { OscilloscopeConfigViewComponent } from './oscilloscope-config-view/oscilloscope-config-view.component';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent],
-  imports: [MatExpansionModule],
+  imports: [MatExpansionModule, CommonModule],
   exports: [VideoViewComponent, OscilloscopeConfigViewComponent, TimelineViewComponent],
 })
 export class UiModule {}

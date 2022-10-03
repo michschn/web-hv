@@ -61,7 +61,7 @@ export class MotionConnection extends EventTarget {
     function validatedParam(name: string, test: RegExp) {
       const value = urlParams.get(name);
       if (!value?.match(test)) {
-        throw new Error(`Invalid param ${name} (${value})`);
+        throw namedError('InvalidUrlParams', `Invalid param ${name} (${value})`);
       }
       return value!;
     }

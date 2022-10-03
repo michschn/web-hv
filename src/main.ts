@@ -12,30 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'reflect-metadata';
-import './motion-app';
+import { enableProdMode } from '@angular/core';
+import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 
-import { container } from 'tsyringe';
-import { MotionConnection } from './model/motion_connection';
+import { AppModule } from './app/app.module';
+import { environment } from './environments/environment';
 
-(function main() {
-  let motionConnection: MotionConnection;
-  try {
-    motionConnection = MotionConnection.createFromUrlParams(
-      new URLSearchParams(window.location.search)
-    );
-  } catch (e) {
-    // Basic validation of the URL parmeters failed.
-    // Redirect back to web-hv to select an activity.
-    const webHvURL = new URL(window.location.toString());
-    webHvURL.pathname = webHvURL.pathname.replace('motion.html', 'index.html');
-    window.location.replace(webHvURL);
-    return;
-  }
+if (environment.production) {
+  enableProdMode();
+}
 
-  container.register<MotionConnection>(MotionConnection, {
-    useValue: motionConnection,
+platformBrowserDynamic()
+  .bootstrapModule(AppModule)
+  .catch(err => {
+    if (`${err}`.startsWith('InvalidUrlParams')) {
+      // Basic validation of the URL parmeters failed.
+      // Redirect back to web-hv to select an activity.
+      // NOTE: err is not the original object thrown, so the `name` property is long gone.
+      const webHvURL = new URL(window.location.toString());
+      webHvURL.pathname = webHvURL.pathname.replace('motion.html', 'index.html');
+      window.location.replace(webHvURL);
+      return;
+    }
+    console.error(err);
   });
-
-  document.body.append(document.createElement('motion-app'));
-})();

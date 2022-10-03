@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { singleton } from 'tsyringe';
+import { Injectable } from '@angular/core';
 
 /**
  * Tracks activity that should show a progress bar.
  */
-@singleton()
+@Injectable()
 export class ProgressTracker extends EventTarget {
   private progressCount = 0;
+
+  get isActive() {
+    return this.progressCount > 0;
+  }
 
   trackPromise<T>(promise: Promise<T>): Promise<T> {
     this.beginProgress();

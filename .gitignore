@@ -7,8 +7,21 @@
 /npm-debug.log
 
 # build
-/dist/
-/out-tsc/
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
 
 storybook-static
 custom-elements.json

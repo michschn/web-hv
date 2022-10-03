@@ -18,18 +18,6 @@
  * @fileoverview declarations needed to integrate into the JS web-hv code.
  */
 
-type StateCleanup = () => void;
-
-/** WebHV calls these functions once upon invocation of `resetActiveState` */
-declare let ActiveState: Array<StateCleanup>;
-
-/**
- * Calls cleanup functions previously added to ActiveState.
- *
- * This is *typically* done when switching the top level functionality.
- */
-declare function resetActiveState(): void;
-
 declare const ADB_INTERFACE_CLASS: number;
 declare const ADB_INTERFACE_SUB_CLASS: number;
 declare const ADB_INTERFACE_PROTOCOL: number;
@@ -153,9 +141,12 @@ declare class jdwp {
    */
   writeChunk(
     type: string | number,
-    data: DataOutputStream | Array<number>
+    data: DataOutputStream | Array<number> | Uint8Array
   ): Promise<DataInputStream & { chunkType: number }>;
 }
+
+/** Converts a 4-letter chunk type to the 32bit int version. */
+declare function getChunkType(type: string): number;
 
 /**
  * Reads a byte buffer sequentially.

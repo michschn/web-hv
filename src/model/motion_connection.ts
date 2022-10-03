@@ -17,6 +17,11 @@
 import { fixedRetryDelay, NonRetryableError, retry } from '../utils/retry';
 import { checkNotNull, checkState } from '../utils/preconditions';
 import { isNamedError, namedError } from '../utils/utils';
+import * as generated_proto from '../proto/motion.js';
+import motion_proto = generated_proto.com.android.motion;
+
+const CLIENT_VERSION = 1;
+const MOTION_TOOLS_CHUNK_TYPE = getChunkType('MOTO');
 
 export type State = OkState | ErrorState;
 
@@ -149,6 +154,8 @@ export class MotionConnection extends EventTarget {
         return;
       }
 
+      await this.sendHandshake();
+
       this.state = { type: 'connected' };
     } catch (e) {
       this.state = { type: 'error', detail: 'unknown', exception: e };
@@ -211,6 +218,40 @@ export class MotionConnection extends EventTarget {
     console.log(`Connected to process ${processId} (${processName})`);
 
     return processName;
+  }
+
+  async sendHandshake(): Promise<void> {
+    const request = new motion_proto.MotionToolsRequest({
+      handshake: new motion_proto.HandshakeRequest({
+        window: new motion_proto.WindowIdentifier({
+          rootWindow: this.windowId,
+        }),
+        clientVersion: CLIENT_VERSION,
+      }),
+    });
+
+    const handshakeResponse = (await this.sendRequest(request)).handshake;
+    console.log(handshakeResponse);
+  }
+
+  async sendRequest(
+    request: motion_proto.MotionToolsRequest
+  ): Promise<motion_proto.MotionToolsResponse> {
+    const jdwp = checkNotNull(this._jdwp);
+
+    const requestBytes = motion_proto.MotionToolsRequest.encode(request).finish();
+
+    const responseStream = await jdwp.writeChunk(MOTION_TOOLS_CHUNK_TYPE, requestBytes);
+    if (responseStream.chunkType !== MOTION_TOOLS_CHUNK_TYPE) {
+      throw new Error(`Unexpected chunk type 0x${responseStream.chunkType.toString(16)}`);
+    }
+
+    // The responseStream is prefixed with chunk code and length, which have already been consumed
+    // by the jdwp.writeChunk's response read implementation. To grab the rest of the response as
+    // a byte array for protobuf parsing, this has to be skipped.
+    const responseProtoBytes = responseStream.data.slice(responseStream.pos);
+
+    return motion_proto.MotionToolsResponse.decode(responseProtoBytes);
   }
 }
 

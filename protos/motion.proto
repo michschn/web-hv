@@ -42,7 +42,7 @@ message MotionToolsResponse {
     HandshakeResponse handshake = 2;
     BeginTraceResponse begin_trace = 3;
     EndTraceResponse end_trace = 4;
-    PollTraceResponse poll_trace = 4;
+    PollTraceResponse poll_trace = 5;
   }
 }
 

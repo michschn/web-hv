@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,5 +14,22 @@
  * limitations under the License.
  */
 
-:host {
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'ui-oscilloscope-config-view',
+  templateUrl: './oscilloscope-config-view.component.html',
+  styleUrls: ['./oscilloscope-config-view.component.scss'],
+})
+export class OscilloscopeConfigViewComponent implements OnInit {
+  constructor() {}
+
+  ngOnInit(): void {}
+
+  get triggerName(): String {
+    return 'none';
+  }
+  get gestureName(): String {
+    return 'none';
+  }
 }

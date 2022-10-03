@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,5 +14,15 @@
  * limitations under the License.
  */
 
-:host {
+import { Component, OnInit } from '@angular/core';
+
+@Component({
+  selector: 'ui-timeline-view',
+  templateUrl: './timeline-view.component.html',
+  styleUrls: ['./timeline-view.component.scss'],
+})
+export class TimelineViewComponent implements OnInit {
+  constructor() {}
+
+  ngOnInit(): void {}
 }

@@ -16,10 +16,13 @@
 
 import { NgModule } from '@angular/core';
 import { VideoViewComponent } from './video-view/video-view.component';
+import { TimelineViewComponent } from './timeline-view/timeline-view.component';
+import { OscilloscopeConfigViewComponent } from './oscilloscope-config-view/oscilloscope-config-view.component';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @NgModule({
-  declarations: [VideoViewComponent],
-  imports: [],
-  exports: [VideoViewComponent],
+  declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent],
+  imports: [MatExpansionModule],
+  exports: [VideoViewComponent, OscilloscopeConfigViewComponent, TimelineViewComponent],
 })
 export class UiModule {}

@@ -14,3 +14,25 @@
  * limitations under the License.
  */
 
+:host {
+  display: flex;
+  flex-direction: row;
+  padding: 8px;
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 0 1 33%;
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 300px;
+  gap: 8px;
+}
+
+ui-timeline-view {
+  flex-grow: 1;
+}

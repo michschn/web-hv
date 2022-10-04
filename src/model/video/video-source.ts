@@ -14,8 +14,58 @@
  * limitations under the License.
  */
 
-export interface VideoSource {
-  readonly aspectRatio: number;
+/**
+ * A playable video that can be drawn on a `Canvas`.
+ *
+ * See `VideoSourceEventMap` for events this object notifies about.
+ */
+export interface VideoSource extends EventTarget {
+  /* Intrinsic width in pixels. */
   readonly width: number;
-  readonly height: number
+
+  /* Intrinsic height in pixels. */
+  readonly height: number;
+
+  /* Frames per second (fps) of the video. */
+  readonly framerate: number;
+
+  /** Starts playing the video. */
+  play(): Promise<void>;
+
+  /** Stops playing the video. */
+  stop(): Promise<void>;
+
+  /* Current frame number. */
+  readonly currentFrame: number;
+
+  /* Draws the current frame. */
+  drawCurrentFrame(ctx: CanvasRenderingContext2D): void;
+}
+
+/** `frame-available` event data. */
+interface FrameAvailableData {
+  frameNumber: number;
+  presentationTimeMs: number;
+}
+
+interface VideoSourceEventMap {
+  'frame-available': CustomEvent<FrameAvailableData>;
+}
+
+/** A video source with*/
+export interface SeekableVideoSource extends VideoSource {
+  /** Video duration in milliseconds. */
+  readonly durationMs: number;
+
+  /**/
+  seek(frame: number): Promise<void>;
+}
+
+declare global {
+  interface VideoSource {
+    addEventListener<K extends keyof VideoSourceEventMap>(
+      type: K,
+      listener: (this: VideoSource, ev: VideoSourceEventMap[K]) => void
+    ): void;
+  }
 }

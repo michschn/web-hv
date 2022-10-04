@@ -14,18 +14,87 @@
  * limitations under the License.
  */
 
-import { Component, Input } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, ViewChild, } from '@angular/core';
 import { VideoSource } from '../../model/video/video-source';
+import { Disposer } from '../../utils/disposer';
+import { checkNotNull } from '../../utils/preconditions';
 
 @Component({
   selector: 'ui-video-view',
   templateUrl: './video-view.component.html',
   styleUrls: ['./video-view.component.scss'],
 })
-export class VideoViewComponent {
-  constructor() {}
+export class VideoViewComponent implements AfterViewInit, OnDestroy {
+  private _source: VideoSource | null = null;
+  private _observerDisposer = new Disposer(true);
+  private _observer = new ResizeObserver(() => {
+    this.zone.run(() => {
+      this.updateVideoSize();
+    });
+  });
+
+  constructor(private zone: NgZone) {}
+
+  private _container?: ElementRef<HTMLDivElement>;
+
+  @ViewChild('container', { read: ElementRef })
+  set container(value: ElementRef<HTMLDivElement> | undefined) {
+    this._observerDisposer.dispose();
+
+    this._container = value;
+
+    if (this._container) {
+      const containerElement = this._container.nativeElement;
+      this._observer.observe(containerElement);
+      this._observerDisposer.addFunction(() => {
+        this._observer.unobserve(containerElement);
+      });
+      this.updateVideoSize();
+    }
+  }
+
+  @ViewChild('canvas', { read: ElementRef })
+  canvas?: ElementRef<HTMLCanvasElement>;
 
   @Input()
-  source?: VideoSource;
+  set source(value: VideoSource | null) {
+    this._source = value;
+    this.updateVideoSize();
+  }
 
+  get source() {
+    return this._source;
+  }
+
+  ngAfterViewInit(): void {
+  }
+
+  ngOnDestroy() {
+    this._observerDisposer.dispose();
+  }
+
+  updateVideoSize() {
+    if (!this.canvas) return;
+    const canvasElement = this.canvas.nativeElement;
+    if (!this._container || !this._source) {
+      canvasElement.width = canvasElement.height = 0;
+      return;
+    }
+
+    console.log(`clientHeight: ${this._container.nativeElement.clientHeight}, clientWidth: ${this._container.nativeElement.clientWidth} width ${ this._source.width}, height ${ this._source.height}`)
+
+    // Determine the scaling ratio for both, witdth and height, to fit the video into the container.
+    const widthScale = this._container.nativeElement.clientWidth / this._source.width;
+    const heightScale = this._container.nativeElement.clientHeight / this._source.height;
+    // Pick the smaller scale factor to ensure both width and height will fit, however do not allow
+    // scaling up.
+    const scale = Math.min(widthScale, heightScale, 1);
+    console.log(`widthScale: ${widthScale}, heightScale: ${heightScale} scale: ${scale}`)
+
+
+    canvasElement.width = this._source.width * scale;
+    canvasElement.height = this._source.height * scale;
+
+    this._source.drawCurrentFrame(checkNotNull(canvasElement.getContext('2d')));
+  }
 }

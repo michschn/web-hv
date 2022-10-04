@@ -15,9 +15,6 @@
   -->
 
 <div *ngIf="!source" class="no-source" label="No video source!">📺</div>
-<div *ngIf="source">
-
-  <canvas></canvas>
-
-
+<div *ngIf="source" #container class="canvas-container" >
+  <canvas #canvas></canvas>
 </div>

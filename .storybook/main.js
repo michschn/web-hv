@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-:host {
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  justify-content: center;
-  align-items: stretch;
+module.exports = {
+  "stories": [
+    "../src/**/*.stories.mdx",
+    "../src/**/*.stories.@(js|jsx|ts|tsx)"
+  ],
+  "addons": [
+    "@storybook/addon-links",
+    "@storybook/addon-essentials",
+    "@storybook/addon-interactions"
+  ],
+  "framework": "@storybook/angular",
+  "core": {
+    "builder": "@storybook/builder-webpack5"
   }
-
-.canvas-container {
-  display: flex;
-  flex-grow: 1;
-  overflow: hidden;
-
-  align-content: center;
-  justify-items: center;
-}
-
-canvas {
-  height: fit-content;
-  width: fit-content;
-}
-
-.no-source {
-  align-self: center;
-  font-size: 96px;
 }

@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,18 @@
  * limitations under the License.
  */
 
-:host {
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  justify-content: center;
-  align-items: stretch;
-  }
+import {setCompodocJson} from "@storybook/addon-docs/angular";
+import docJson from "../documentation.json";
 
-.canvas-container {
-  display: flex;
-  flex-grow: 1;
-  overflow: hidden;
+setCompodocJson(docJson);
 
-  align-content: center;
-  justify-items: center;
-}
-
-canvas {
-  height: fit-content;
-  width: fit-content;
-}
-
-.no-source {
-  align-self: center;
-  font-size: 96px;
+export const parameters = {
+  actions: { argTypesRegex: "^on[A-Z].*" },
+  controls: {
+    matchers: {
+      color: /(background|color)$/i,
+      date: /Date$/,
+    },
+  },
+  docs: { inlineStories: true },
 }

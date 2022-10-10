@@ -1,18 +1,23 @@
-// Copyright 2021 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 function createJmuxPlayer(container) {
+    // Rgus flavor is built around the "Media Source Extensions"
+    // (https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API)
+    // and is widely supported for all browsers
     console.log("Using jmuxplayer");
     const ret = {
         el: $("<video autoplay>").appendTo(container)
@@ -25,6 +30,10 @@ function createJmuxPlayer(container) {
         ret.onMetadata();
     });
 
+    // JMuxer is used to decode the h.264 packet stream and re-mux it into an
+    // MP4 container format. This is needed as the "Media Source Extensions"
+    // (https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API)
+    // only support h.264 video codec, but not the streaming format.
     const jmuxer = new JMuxer({
         node: ret.el.get(0),
         mode: 'video',
@@ -51,11 +60,18 @@ function createJmuxPlayer(container) {
 }
 
 function createDecoderPlayer(container) {
+    // This flavor is built around the WebCodecs APIs
+    // https://developer.mozilla.org/en-US/docs/Web/API/WecbCodecs_API
+    // which are only supported in Chromium based browsers (https://caniuse.com/webcodecs)
+
     console.log("Using video decoder");
-    const NDR = 1;
-    const IDR = 5;
-    const SPS = 7;
-    const PPS = 8;
+    // spec PDF: https://www.itu.int/ITU-T/recommendations/rec.aspx?rec=11466
+    // IDR: instantaneous decoding refresh picture
+
+    const NDR = 1; // Coded slice of a non-IDR picture
+    const IDR = 5; // Coded slice of an IDR picture
+    const SPS = 7; // Sequence parameter set (see 7.3.2.1 Sequence parameter set RBSP syntax)
+    const PPS = 8; // Picture parameter set (see 7.3.2.2 Picture parameter set RBSP syntax)
 
     const ret = {
         el: $("<canvas>").appendTo(container)
@@ -98,7 +114,8 @@ function createDecoderPlayer(container) {
     }
     ret.resize(0, 0);
 
-    function naul(data) {
+    function nalu(data) {
+        // 7.3.1 NAL unit syntax
         this.data = data;
         this.type = data[0] & 0x1f;
     }
@@ -107,13 +124,17 @@ function createDecoderPlayer(container) {
     let pendingBytes = null;
     let configPending = true;
 
-    function createConfig(header) {
+    function createConfig(spsFrame, ppsFrame) {
         // Create description:
-        const sps = header.sps[0].data;
-        const pps = header.pps[0].data;
+        const sps = spsFrame.data;
+        const pps = ppsFrame.data;
         return {
+            // https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter#avc_profiles
+            // getUint32 reads 4 bytes big-endian, thus 1st byte is NALu, the next 3 bytes are  Sequence parameter set RBSP, with profile (8 bits), constraints (8 bits), level (8 bits)
             codec: 'avc1.' + new DataView(sps.buffer, sps.byteOffset).getUint32(0).toString(16).substr(-6),
             description: Uint8Array.from(
+                // AVCDecoderConfigurationRecord
+                // https://gist.github.com/uupaa/8493378ec15f644a3d2b#52411-syntax
                 [1, sps[1], sps[2], sps[3], 255, 0xE0 | 1, (sps.length >> 8) & 0xFF, sps.length & 0xFF]
                 .concat(...sps)
                 .concat([1, (pps.length >> 8) & 0xFF, pps.length & 0xFF])
@@ -137,7 +158,7 @@ function createDecoderPlayer(container) {
                     endPos = i - 1;
                 }
                 if (endPos > lastPos) {
-                    pendingFrames.push(new naul(buffer.subarray(lastPos, endPos)))
+                    pendingFrames.push(new nalu(buffer.subarray(lastPos, endPos)))
                 }
                 lastPos = i + 3;
             }
@@ -149,68 +170,37 @@ function createDecoderPlayer(container) {
     let frameeNo = 0;
 
     ret.feed = function(data) {
+        // This waits for the SPS and PPS NAL units, and configures the deconder
+        // once ready. From there on, the android device created stream only
+        // contains IDRs and NDRs
         parseNALu(data);
 
         if (configPending) {
-            const header = {
-                sps: [],
-                pps: [],
-                ready: false
+            const spsFrame = pendingFrames.find(frame => frame.type === SPS);
+            const ppsFrame = pendingFrames.find(frame => frame.type === PPS);
+            if (!spsFrame || !ppsFrame) {
+                return;
             }
-            for (let i = 0; i < pendingFrames.length; i++) {
-                switch (pendingFrames[i].type) {
-                    case SPS:
-                        header.sps.push(pendingFrames[i]);
-                        break;
-                    case PPS:
-                        header.pps.push(pendingFrames[i]);
-                        break;
-                    case IDR:
-                    case NDR:
-                        header.ready = true;
-                        break;
-                }
-            }
-            if (header.ready && header.pps.length && header.sps.length) {
-                decoder.configure(createConfig(header));
-                configPending = false;
-            }
-        }
-        if (configPending) {
-            return;
+            decoder.configure(createConfig(spsFrame, ppsFrame));
+            configPending = false;
         }
 
-        let pendingPayload = null;
-        for (let i = 0; i < pendingFrames.length; i++) {
-            let push = false;
-            let isKey = false;
-            switch (pendingFrames[i].type) {
-                case IDR:
-                case NDR:
-                    push = true;
-                case SPS:
-                case PPS: {
-                    const data = pendingFrames[i].data;
-                    const load = new Uint8Array(4 + data.byteLength);
-                    new DataView(load.buffer).setUint32(0, data.byteLength);
-                    load.set(data, 4);
+        pendingFrames
+            .filter(frame => frame.type === IDR || frame.type === NDR)
+            .map(frame => {
+                // create a data buffer with the frame data, prefixed by the
+                // buffer's length
+                const data = new Uint8Array(4 + frame.data.byteLength);
+                new DataView(data.buffer).setUint32(0, frame.data.byteLength);
+                data.set(frame.data, 4);
 
-                    isKey = pendingPayload != null;
-
-                    pendingPayload = pendingPayload == null ? load : appendBuffer(pendingPayload, load);
-                }
-            }
-            if (push) {
-                const chunk = new EncodedVideoChunk({
-                    type: isKey ? "key" : "delta",
-                    timestamp: (frameeNo++) * 16,
-                    duration: 16,
-                    data: pendingPayload
-                  });
-                  decoder.decode(chunk);
-                  pendingPayload = null;
-            }
-        }
+                return new EncodedVideoChunk({
+                    type: frame.type === IDR ? 'key' : 'delta',
+                    timestamp: Date.now(),
+                    duration: 0,
+                    data: data
+                });
+            }).forEach(chunk => decoder.decode(chunk));
         pendingFrames = [];
     };
     return ret;

@@ -48,7 +48,7 @@ export const PortraitVideo = Template.bind({});
 PortraitVideo.args = {
   source: new FakeVideoSource(300, 400),
 };
-PortraitVideo.decorators = [constantSizeDecorator(400,500)];
+PortraitVideo.decorators = [constantSizeDecorator(400, 500)];
 
 export const PortraitVideoConstrainedWidth = Template.bind({});
 PortraitVideoConstrainedWidth.args = {

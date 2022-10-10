@@ -15,6 +15,8 @@
  */
 
 import { Component, OnInit } from '@angular/core';
+import { MotionConnection } from '../../model/motion_connection';
+import { VideoSource } from '../../model/video/video-source';
 
 @Component({
   selector: 'app-motion-viewer',
@@ -22,7 +24,14 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./motion-viewer.component.scss'],
 })
 export class MotionViewerComponent implements OnInit {
-  constructor() {}
+  constructor(private _motionConnection: MotionConnection) {}
 
-  ngOnInit(): void {}
+  videoSource: VideoSource | null = null;
+
+  ngOnInit(): void {
+    this._motionConnection.createLiveViewSource().then(result => {
+      this.videoSource = result;
+      result.play()
+    });
+  }
 }

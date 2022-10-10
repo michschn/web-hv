@@ -38,5 +38,6 @@
 </mat-toolbar>
 <mat-progress-bar *ngIf="showProgress"></mat-progress-bar>
 <div class="content mat-app-background">
-  <app-motion-viewer></app-motion-viewer>
+
+  <app-motion-viewer *ngIf="isConnected"></app-motion-viewer>
 </div>

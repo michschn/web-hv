@@ -100,6 +100,8 @@ declare class AdbStream {
 
   keepOpen: boolean;
 
+  onReceiveWrite: (data: Uint8Array) => void;
+
   read(length: number, callback: (result: Uint8Array) => void): void;
 
   readAll<T>(responseMerger: ResponseMerger<T>): Promise<T>;

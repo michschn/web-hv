@@ -12,8 +12,10 @@
     "@angular/platform-browser": "^14.2.0",
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
+    "jmuxer": "^2.0.5",
     "protobufjs": "^7.1.2",
     "rxjs": "~7.5.0",
+    "stream-browserify": "^3.0.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"
   },
@@ -32,6 +34,7 @@
     "@storybook/manager-webpack5": "^6.5.12",
     "@storybook/testing-library": "^0.0.13",
     "@types/jasmine": "~4.0.0",
+    "@types/jmuxer": "^2.0.3",
     "@types/w3c-web-usb": "^1.0.6",
     "angular-cli-ghpages": "^1.0.3",
     "babel-loader": "^8.2.5",
@@ -61,8 +64,7 @@
   "prettier": {
     "printWidth": 100,
     "singleQuote": true,
-    "arrowParens": "avoid",
-    "proseWrap": "always"
+    "arrowParens": "avoid"
   },
   "lint-staged": {
     "*.ts": [

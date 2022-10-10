@@ -15,3 +15,6 @@
  */
 
 import 'zone.js';
+
+// Required for stream-browserify
+(window as any)['global'] = window;

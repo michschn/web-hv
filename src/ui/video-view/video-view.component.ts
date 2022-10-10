@@ -26,6 +26,8 @@ import { checkNotNull } from '../../utils/preconditions';
 })
 export class VideoViewComponent implements AfterViewInit, OnDestroy {
   private _source: VideoSource | null = null;
+  private _sourceDisposer = new Disposer(true);
+
   private _observerDisposer = new Disposer(true);
   private _observer = new ResizeObserver(() => {
     this.zone.run(() => {
@@ -57,17 +59,26 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
   canvas?: ElementRef<HTMLCanvasElement>;
 
   @Input()
-  set source(value: VideoSource | null) {
-    this._source = value;
+  set source(newSource: VideoSource | null) {
+    if (this._source === newSource) return;
+
+    this._sourceDisposer.dispose();
+    this._source = newSource;
     this.updateVideoSize();
+
+    if (newSource) {
+      this._sourceDisposer.addListener(newSource, `metadata-changed`, () => {
+        this.updateVideoSize();
+      });
+      requestAnimationFrame(() => this._onFrameAvailable());
+    }
   }
 
   get source() {
     return this._source;
   }
 
-  ngAfterViewInit(): void {
-  }
+  ngAfterViewInit(): void {}
 
   ngOnDestroy() {
     this._observerDisposer.dispose();
@@ -81,7 +92,9 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    console.log(`clientHeight: ${this._container.nativeElement.clientHeight}, clientWidth: ${this._container.nativeElement.clientWidth} width ${ this._source.width}, height ${ this._source.height}`)
+    console.log(
+      `clientHeight: ${this._container.nativeElement.clientHeight}, clientWidth: ${this._container.nativeElement.clientWidth} width ${this._source.width}, height ${this._source.height}`
+    );
 
     // Determine the scaling ratio for both, witdth and height, to fit the video into the container.
     const widthScale = this._container.nativeElement.clientWidth / this._source.width;
@@ -89,12 +102,19 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
     // Pick the smaller scale factor to ensure both width and height will fit, however do not allow
     // scaling up.
     const scale = Math.min(widthScale, heightScale, 1);
-    console.log(`widthScale: ${widthScale}, heightScale: ${heightScale} scale: ${scale}`)
-
+    console.log(`widthScale: ${widthScale}, heightScale: ${heightScale} scale: ${scale}`);
 
     canvasElement.width = this._source.width * scale;
     canvasElement.height = this._source.height * scale;
 
     this._source.drawCurrentFrame(checkNotNull(canvasElement.getContext('2d')));
+  }
+
+  _onFrameAvailable() {
+    if (!this._source) return;
+
+    const canvasElement = this.canvas?.nativeElement?.getContext('2d');
+    this._source.drawCurrentFrame(checkNotNull(canvasElement));
+    requestAnimationFrame(() => this._onFrameAvailable());
   }
 }

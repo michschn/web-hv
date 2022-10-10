@@ -51,6 +51,10 @@ export class AppComponent implements OnInit, OnDestroy {
   get showProgress() {
     return this._progressTracker.isActive;
   }
+
+  get isConnected() {
+    return this._motionConnection.state.type == 'connected';
+  }
 }
 
 const ConnectionStateIndicator: Record<State['type'], { label: string; icon: string }> = {

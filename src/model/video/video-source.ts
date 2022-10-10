@@ -26,9 +26,6 @@ export interface VideoSource extends EventTarget {
   /* Intrinsic height in pixels. */
   readonly height: number;
 
-  /* Frames per second (fps) of the video. */
-  readonly framerate: number;
-
   /** Starts playing the video. */
   play(): Promise<void>;
 
@@ -42,14 +39,8 @@ export interface VideoSource extends EventTarget {
   drawCurrentFrame(ctx: CanvasRenderingContext2D): void;
 }
 
-/** `frame-available` event data. */
-interface FrameAvailableData {
-  frameNumber: number;
-  presentationTimeMs: number;
-}
-
 interface VideoSourceEventMap {
-  'frame-available': CustomEvent<FrameAvailableData>;
+  'metadata-changed': Event;
 }
 
 /** A video source with*/

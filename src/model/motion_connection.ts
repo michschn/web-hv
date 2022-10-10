@@ -18,6 +18,7 @@ import { fixedRetryDelay, NonRetryableError, retry } from '../utils/retry';
 import { checkNotNull, checkState } from '../utils/preconditions';
 import { isNamedError, namedError } from '../utils/utils';
 import * as generated_proto from '../proto/motion.js';
+import { LiveViewSource } from './video/live-view-source';
 import motion_proto = generated_proto.com.android.motion;
 
 const CLIENT_VERSION = 1;
@@ -161,6 +162,13 @@ export class MotionConnection extends EventTarget {
       this.state = { type: 'error', detail: 'unknown', exception: e };
       throw e;
     }
+  }
+
+  /**
+   * Creates a new video source that mirrors the device display in realtime.
+   */
+  async createLiveViewSource(): Promise<LiveViewSource> {
+    return LiveViewSource.createVideoSource(checkNotNull(this._adbDevice));
   }
 
   async disconnect() {}

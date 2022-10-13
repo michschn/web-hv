@@ -1,16 +1,18 @@
-// Copyright 2018 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 const ADB_INTERFACE_CLASS = 255;
 const ADB_INTERFACE_SUB_CLASS = 66;
@@ -112,7 +114,7 @@ AdbDevice.prototype._sendMessage = async function (command, arg0, arg1, data) {
     // Send packets serially, otherwise headers might get mixed up
     const sendLock = await this._sendMutex.lock();
     try {
-        if (PROTOCOL_DEBUG) console.debug("Sending ", commandMap[command], arg0, arg1);
+        if (PROTOCOL_DEBUG) console.debug("Sending ", commandMap[command], arg0, arg1, data ? '\n' + hexDump(data) :'');
         if (!data) {
             await this._sendSinglePacketMessage(command, arg0, arg1);
         } else {
@@ -173,7 +175,7 @@ AdbDevice.prototype._resolveDeferred = function(localId, remoteId) {
 }
 
 AdbDevice.prototype._handleMessage = function (header, data) {
-    if (PROTOCOL_DEBUG) console.debug("Received", header, commandMap[header.command], this.readyDeferred.length);
+    if (PROTOCOL_DEBUG) console.debug("Received",  commandMap[header.command], header, this.readyDeferred.length, data ? '\n' + hexDump(data) :'');
     switch (header.command) {
         case SYNC_COMMAND:
             throw new Error('sync not implemented');
@@ -185,7 +187,7 @@ AdbDevice.prototype._handleMessage = function (header, data) {
                 if (header.arg0 != VERSION && header.arg0 != VERSION_SKIP_CHECKSUM) {
                     throw new Error(`Unexpected ADB version: ${header.arg0}`);
                 }
-                this.version = header.arg0;                
+                this.version = header.arg0;
                 this.maxPayload = header.arg1;
                 this._setState(STATE_CONNECTED_DEVICE);
                 break;
@@ -495,4 +497,20 @@ AdbDevice.prototype.sendFile = async function (targetPath, sourcePath) {
     if ("OKAY" != okay) {
         throw "Transfer failer";
     }
+}
+
+
+function hexDump(chunk) {
+  var lines = []
+  for (let i = 0; i < chunk.length; i += 32) {
+    const line = [...chunk.subarray(i, Math.min(i + 32, chunk.length))];
+    lines.push(
+      i.toString(16).padStart(8, '0') +
+      ' ' +
+      line.map(value => value.toString(16).padStart(2, '0')).join(' ') +
+      ' ' +
+      line.map(value => (value < 32 ? '.' : String.fromCharCode(value))).join(''))
+    ;
+  }
+  return lines.join('\n');
 }

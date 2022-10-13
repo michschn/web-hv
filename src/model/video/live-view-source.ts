@@ -42,12 +42,8 @@ export class LiveViewSource extends EventTarget implements VideoSource, Disposab
     return this._height ?? 0;
   }
 
-  private constructor(private readonly device: AdbDevice) {
+  constructor(private readonly device: AdbDevice) {
     super();
-  }
-
-  static async createVideoSource(device: AdbDevice): Promise<LiveViewSource> {
-    return new LiveViewSource(device);
   }
 
   drawCurrentFrame(ctx: CanvasRenderingContext2D): void {

@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": [
-      "w3c-web-usb"
+      "w3c-web-usb",
+      "wicg-file-system-access"
     ]
   },
   "files": [
@@ -15,6 +16,7 @@
   ],
   "exclude": [
     "**/*.stories.*",
-    "**/*.fake.*"
+    "**/*.fake.*",
+    "**/*.worker.*"
   ]
 }

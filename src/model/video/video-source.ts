@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+import { Disposable } from '../../utils/disposer';
+
 /**
  * A playable video that can be drawn on a `Canvas`.
  *
  * See `VideoSourceEventMap` for events this object notifies about.
  */
-export interface VideoSource extends EventTarget {
+export interface VideoSource extends EventTarget,Disposable{
   /* Intrinsic width in pixels. */
   readonly width: number;
 
@@ -32,9 +34,6 @@ export interface VideoSource extends EventTarget {
   /** Stops playing the video. */
   stop(): Promise<void>;
 
-  /* Current frame number. */
-  readonly currentFrame: number;
-
   /* Draws the current frame. */
   drawCurrentFrame(ctx: CanvasRenderingContext2D): void;
 }
@@ -43,13 +42,22 @@ interface VideoSourceEventMap {
   'metadata-changed': Event;
 }
 
-/** A video source with*/
+/** A `VideoSource` randomly seekable to a specified time */
 export interface SeekableVideoSource extends VideoSource {
-  /** Video duration in milliseconds. */
-  readonly durationMs: number;
+  /**
+   * A read-only double-precision floating-point value indicating the total duration of the video
+   * in second.
+   */
+  readonly duration: number;
 
-  /**/
-  seek(frame: number): Promise<void>;
+  /**
+   * Seeks the media to the given time, represented as a double-precision floating-point
+   * value in seconds.
+   *
+   * Returns `true` once the seek succeeded, `false` if it was cancelled, for example by a later
+   * seek, or stopping playback.
+   */
+  seek(time: number): Promise<boolean>;
 }
 
 declare global {

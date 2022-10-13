@@ -15,8 +15,9 @@
   -->
 
 <div class="left-panel">
-  <ui-video-view [source]="liveVideo"></ui-video-view>
+  <ui-video-view [source]="recording?.videoSource"></ui-video-view>
 </div>
 <div class="right-panel">
-  <ui-oscilloscope-config-view></ui-oscilloscope-config-view>
+  <ui-timeline-view></ui-timeline-view>
 </div>
+

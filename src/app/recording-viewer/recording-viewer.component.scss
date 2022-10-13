@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 :host {
   display: flex;
   flex-direction: row;
@@ -40,3 +41,7 @@ ui-video-view {
   flex-grow: 1;
 }
 
+
+ui-timeline-view {
+  flex-grow: 1;
+}

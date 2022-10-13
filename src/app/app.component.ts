@@ -18,6 +18,8 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Disposer } from '../utils/disposer';
 import { MotionConnection, State } from '../model/motion_connection';
 import { ProgressTracker } from '../utils/progress';
+import { RecorderService } from '../model/recording/recorder.service';
+import { Recording } from '../model/recording/recording';
 
 @Component({
   selector: 'app-root',
@@ -27,6 +29,7 @@ import { ProgressTracker } from '../utils/progress';
 export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private _motionConnection: MotionConnection,
+    private _recordingService: RecorderService,
     private _progressTracker: ProgressTracker
   ) {}
 
@@ -39,6 +42,8 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this._motionConnection.disconnect();
   }
+
+  recording?: Recording;
 
   get connectionStateIcon(): string {
     return ConnectionStateIndicator[this._motionConnection.state.type].icon;
@@ -55,6 +60,27 @@ export class AppComponent implements OnInit, OnDestroy {
   get isConnected() {
     return this._motionConnection.state.type == 'connected';
   }
+
+  get isRecording() {
+    return this._recordingService.isRecording;
+  }
+
+  async toggleRecording() {
+    if (this._recordingService.isRecording) {
+      const recordingPromise = this._recordingService.stopRecording();
+      this.recording = await this._progressTracker.trackPromise(recordingPromise);
+
+    } else {
+      this.clearRecording();
+      this._recordingService.startRecording();
+    }
+  }
+
+  clearRecording() {
+    this.recording?.dispose();
+    this.recording = undefined;
+  }
+
 }
 
 const ConnectionStateIndicator: Record<State['type'], { label: string; icon: string }> = {

@@ -50,7 +50,7 @@ export class ProgressTracker extends EventTarget {
    */
   endProgress() {
     console.assert(this.progressCount > 0);
-    this.progressCount++;
+    this.progressCount--;
     if (this.progressCount == 0) {
       this.dispatchEvent(new Event('progress-ended'));
     }

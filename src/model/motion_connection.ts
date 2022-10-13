@@ -16,13 +16,14 @@
 
 import { fixedRetryDelay, NonRetryableError, retry } from '../utils/retry';
 import { checkNotNull, checkState } from '../utils/preconditions';
-import { isNamedError, namedError } from '../utils/utils';
+import { Deferred, isNamedError, namedError } from '../utils/utils';
 import * as generated_proto from '../proto/motion.js';
 import { LiveViewSource } from './video/live-view-source';
+import { VideoCapture } from './video/video-capture';
 import motion_proto = generated_proto.com.android.motion;
 
 const CLIENT_VERSION = 1;
-const MOTION_TOOLS_CHUNK_TYPE = getChunkType('MOTO');
+const MOTION_TOOLS_CHUNK_TYPE = 0x4d_4f_54_4f; // 'MOTO';
 
 export type State = OkState | ErrorState;
 
@@ -89,7 +90,7 @@ export class MotionConnection extends EventTarget {
   // Whether the _adbDevice is in the connected state.
   private _deviceConnected = false;
   // Completes when as soon as `_deviceConnected === true`
-  private _deviceConnectedPromise = deferred<void>();
+  private _deviceConnectedPromise = new Deferred<void>();
 
   get state() {
     return this._state;
@@ -131,7 +132,7 @@ export class MotionConnection extends EventTarget {
       this._jdwp = new jdwp(this.processId, this._adbDevice);
       let processName: string;
       try {
-        processName = await this.readProcessName();
+        processName = await this._readProcessName();
       } catch (e) {
         if (e instanceof Error && e.name === 'StreamDisconnectedError') {
           // An invalid PID caused the stream to be closed (via remote command)
@@ -164,11 +165,38 @@ export class MotionConnection extends EventTarget {
     }
   }
 
+  async sendRequest(
+    request: motion_proto.MotionToolsRequest
+  ): Promise<motion_proto.MotionToolsResponse> {
+    const jdwp = checkNotNull(this._jdwp);
+
+    const requestBytes = motion_proto.MotionToolsRequest.encode(request).finish();
+
+    const responseStream = await jdwp.writeChunk(MOTION_TOOLS_CHUNK_TYPE, requestBytes);
+    if (responseStream.chunkType !== MOTION_TOOLS_CHUNK_TYPE) {
+      throw new Error(`Unexpected chunk type 0x${responseStream.chunkType.toString(16)}`);
+    }
+
+    // The responseStream is prefixed with chunk code and length, which have already been consumed
+    // by the jdwp.writeChunk's response read implementation. To grab the rest of the response as
+    // a byte array for protobuf parsing, this has to be skipped.
+    const responseProtoBytes = responseStream.data.slice(responseStream.pos);
+
+    return motion_proto.MotionToolsResponse.decode(responseProtoBytes);
+  }
+
   /**
    * Creates a new video source that mirrors the device display in realtime.
    */
-  async createLiveViewSource(): Promise<LiveViewSource> {
-    return LiveViewSource.createVideoSource(checkNotNull(this._adbDevice));
+  createLiveViewSource(): LiveViewSource {
+    return new LiveViewSource(checkNotNull(this._adbDevice));
+  }
+
+  /**
+   * Allows recording the device screen into an MP3 video.
+   */
+  async createVideoCapture(): Promise<VideoCapture> {
+    return new VideoCapture(checkNotNull(this._adbDevice));
   }
 
   async disconnect() {}
@@ -203,15 +231,15 @@ export class MotionConnection extends EventTarget {
 
     if (deviceConnected && !this._deviceConnected) {
       this._deviceConnected = true;
-      this._deviceConnectedPromise.accept();
+      this._deviceConnectedPromise.resolve();
     } else if (!deviceConnected && this._deviceConnected) {
       this._deviceConnected = false;
-      this._deviceConnectedPromise = deferred();
+      this._deviceConnectedPromise = new Deferred();
     }
   }
 
   /** Sends an HELO packet to initialize the connection and read the process name. */
-  async readProcessName(): Promise<string> {
+  async _readProcessName(): Promise<string> {
     const jdwp = checkNotNull(this._jdwp);
 
     const data = await jdwp.writeChunk('HELO', [0, 0, 0, 1]);
@@ -240,26 +268,6 @@ export class MotionConnection extends EventTarget {
 
     const handshakeResponse = (await this.sendRequest(request)).handshake;
     console.log(handshakeResponse);
-  }
-
-  async sendRequest(
-    request: motion_proto.MotionToolsRequest
-  ): Promise<motion_proto.MotionToolsResponse> {
-    const jdwp = checkNotNull(this._jdwp);
-
-    const requestBytes = motion_proto.MotionToolsRequest.encode(request).finish();
-
-    const responseStream = await jdwp.writeChunk(MOTION_TOOLS_CHUNK_TYPE, requestBytes);
-    if (responseStream.chunkType !== MOTION_TOOLS_CHUNK_TYPE) {
-      throw new Error(`Unexpected chunk type 0x${responseStream.chunkType.toString(16)}`);
-    }
-
-    // The responseStream is prefixed with chunk code and length, which have already been consumed
-    // by the jdwp.writeChunk's response read implementation. To grab the rest of the response as
-    // a byte array for protobuf parsing, this has to be skipped.
-    const responseProtoBytes = responseStream.data.slice(responseStream.pos);
-
-    return motion_proto.MotionToolsResponse.decode(responseProtoBytes);
   }
 }
 

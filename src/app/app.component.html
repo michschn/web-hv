@@ -18,6 +18,12 @@
   <span>Motion</span>
 
   <span class="header-spacer"></span>
+  <button mat-flat-button (click)="toggleRecording()" [disabled]="!isConnected">
+    {{ isRecording ? 'Stop' : 'Run' }}
+  </button>
+
+  <button mat-flat-button (click)="clearRecording()" [disabled]="recording == null">Clear</button>
+
   <button mat-icon-button [matMenuTriggerFor]="connectionMenu">
     <mat-icon>{{ connectionStateIcon }}</mat-icon>
   </button>
@@ -36,8 +42,9 @@
     </button>
   </mat-menu>
 </mat-toolbar>
-<mat-progress-bar *ngIf="showProgress"></mat-progress-bar>
 <div class="content mat-app-background">
-
-  <app-motion-viewer *ngIf="isConnected"></app-motion-viewer>
+  <mat-progress-bar *ngIf="showProgress" mode="indeterminate"></mat-progress-bar>
+  <app-recording-viewer *ngIf="isConnected && recording" [recording]="recording">
+  </app-recording-viewer>
+  <app-motion-viewer *ngIf="isConnected && !recording"> </app-motion-viewer>
 </div>

@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-:host {
-  display: flex;
-  flex-direction: row;
-  padding: 8px;
-  gap: 8px;
-}
+import { Component, Input } from '@angular/core';
+import { Recording } from '../../model/recording/recording';
 
-.left-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 0 1 33%;
-  align-content: stretch;
-  align-items: stretch;
-}
+@Component({
+  selector: 'app-recording-viewer',
+  templateUrl: './recording-viewer.component.html',
+  styleUrls: ['./recording-viewer.component.scss'],
+})
+export class RecordingViewerComponent {
+  constructor() {}
 
-.right-panel {
-  display: flex;
-  flex-direction: column;
-  flex: 1 0 300px;
-  gap: 8px;
-}
+  @Input()
+  recording?: Recording;
 
-ui-video-view {
-  flex-grow: 1;
+  ngOnInit(): void {}
 }
-

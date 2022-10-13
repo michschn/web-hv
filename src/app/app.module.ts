@@ -28,9 +28,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MotionViewerComponent } from './motion-viewer/motion-viewer.component';
 import { UiModule } from '../ui/ui.module';
+import { RecorderService } from '../model/recording/recorder.service';
+import { RecordingViewerComponent } from './recording-viewer/recording-viewer.component';
 
 @NgModule({
-  declarations: [AppComponent, MotionViewerComponent],
+  declarations: [AppComponent, MotionViewerComponent, RecordingViewerComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -47,6 +49,7 @@ import { UiModule } from '../ui/ui.module';
       useFactory: () =>
         MotionConnection.createFromUrlParams(new URLSearchParams(window.location.search)),
     },
+    RecorderService,
     ProgressTracker,
   ],
   bootstrap: [AppComponent],

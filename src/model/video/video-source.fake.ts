@@ -25,16 +25,16 @@ export class FakeVideoSource extends EventTarget implements SeekableVideoSource 
     public readonly height: number,
     options?: {
       framerate: number;
-      durationMs: number;
+      duration: number;
     }
   ) {
     super();
-    this.durationMs = options?.durationMs ?? 2000;
+    this.duration = options?.duration ?? 2;
     this.framerate = options?.framerate ?? 60;
-    this._totalFrames = Math.round((this.durationMs * this.framerate) / 1000);
+    this._totalFrames = Math.round(this.duration * this.framerate);
   }
 
-  readonly durationMs: number;
+  readonly duration: number;
   readonly framerate: number;
 
   get currentFrame() {
@@ -78,11 +78,13 @@ export class FakeVideoSource extends EventTarget implements SeekableVideoSource 
     return Promise.resolve(undefined);
   }
 
-  seek(frame: number): Promise<void> {
-    return Promise.resolve(undefined);
+  seek(time: number): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   stop(): Promise<void> {
     return Promise.resolve(undefined);
   }
+
+  dispose(): void {}
 }

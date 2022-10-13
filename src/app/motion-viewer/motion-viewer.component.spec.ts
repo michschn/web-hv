@@ -17,13 +17,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MotionViewerComponent } from './motion-viewer.component';
+import { MotionConnection } from '../../model/motion_connection';
+import { FakeVideoSource } from '../../model/video/video-source.fake';
+import { RecorderService } from '../../model/recording/recorder.service';
 
 describe('MotionViewerComponent', () => {
   let component: MotionViewerComponent;
   let fixture: ComponentFixture<MotionViewerComponent>;
 
   beforeEach(async () => {
+    const motionConnection = jasmine.createSpyObj('MotionConnection', ['createLiveViewSource']);
+    motionConnection.createLiveViewSource.and.returnValue(
+      new FakeVideoSource(100, 200)
+    );
+
     await TestBed.configureTestingModule({
+      providers: [RecorderService,
+        {
+          provide: MotionConnection,
+          useValue: motionConnection,
+        },
+      ],
+
       declarations: [MotionViewerComponent],
     }).compileComponents();
 

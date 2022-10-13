@@ -14,24 +14,27 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { MotionConnection } from '../../model/motion_connection';
-import { VideoSource } from '../../model/video/video-source';
+import { LiveViewSource } from '../../model/video/live-view-source';
 
 @Component({
   selector: 'app-motion-viewer',
   templateUrl: './motion-viewer.component.html',
   styleUrls: ['./motion-viewer.component.scss'],
 })
-export class MotionViewerComponent implements OnInit {
-  constructor(private _motionConnection: MotionConnection) {}
+export class MotionViewerComponent implements OnInit, OnDestroy {
+  constructor(private _motionConnection: MotionConnection) {
+    this.liveVideo = this._motionConnection.createLiveViewSource();
+  }
 
-  videoSource: VideoSource | null = null;
+  liveVideo: LiveViewSource;
 
   ngOnInit(): void {
-    this._motionConnection.createLiveViewSource().then(result => {
-      this.videoSource = result;
-      result.play()
-    });
+    this.liveVideo.play();
+  }
+
+  ngOnDestroy(): void {
+    this.liveVideo.dispose();
   }
 }

@@ -31,12 +31,21 @@ mat-toolbar {
 }
 
 .content {
+  position: relative;
   display: flex;
   flex-grow: 1;
   overflow: scroll;
   align-content: stretch;
 }
 
-app-motion-viewer {
+mat-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+app-motion-viewer,
+app-recording-viewer {
   flex-grow: 1;
 }

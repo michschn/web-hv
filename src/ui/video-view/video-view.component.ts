@@ -25,7 +25,7 @@ import { checkNotNull } from '../../utils/preconditions';
   styleUrls: ['./video-view.component.scss'],
 })
 export class VideoViewComponent implements AfterViewInit, OnDestroy {
-  private _source: VideoSource | null = null;
+  private _source?: VideoSource;
   private _sourceDisposer = new Disposer(true);
 
   private _observerDisposer = new Disposer(true);
@@ -59,7 +59,7 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
   canvas?: ElementRef<HTMLCanvasElement>;
 
   @Input()
-  set source(newSource: VideoSource | null) {
+  set source(newSource: VideoSource | undefined) {
     if (this._source === newSource) return;
 
     this._sourceDisposer.dispose();

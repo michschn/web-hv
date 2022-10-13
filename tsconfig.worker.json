@@ -2,19 +2,20 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./out-tsc/spec",
+    "outDir": "./out-tsc/worker",
+    "lib": [
+      "es2018",
+      "webworker"
+      ],
     "types": [
-      "jasmine",
-      "w3c-web-usb",
       "wicg-file-system-access"
     ]
   },
-  "files": [
-    "src/test.ts",
-    "src/polyfills.ts"
-  ],
   "include": [
-    "src/**/*.spec.ts",
+    "src/**/*.worker.ts",
     "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/webhv.d.ts"
   ]
 }

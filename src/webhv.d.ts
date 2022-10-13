@@ -104,7 +104,7 @@ declare class AdbStream {
 
   read(length: number, callback: (result: Uint8Array) => void): void;
 
-  readAll<T>(responseMerger: ResponseMerger<T>): Promise<T>;
+  readAll<T>(responseMerger?: ResponseMerger<T>): Promise<T>;
 
   write(data: string | Uint8Array): Promise<void>;
 
@@ -150,6 +150,9 @@ declare class jdwp {
 /** Converts a 4-letter chunk type to the 32bit int version. */
 declare function getChunkType(type: string): number;
 
+/** Convert an ascii string to a byte array. */
+declare function stringToByteArray(data: string): Uint8Array;
+
 /**
  * Reads a byte buffer sequentially.
  *
@@ -167,19 +170,14 @@ declare class DataOutputStream {
 
   writeByte(byte: number, position?: number): void;
 
-  writeBytes(bytes: Array<number>, position?: number): void;
+  writeBytes(bytes: Array<number> | Uint8Array, position?: number): void;
 
-  writeInt(int: number, position: number): void;
+  writeInt(int: number, position?: number): void;
 
-  writeFloat(int: number, position: number): void;
+  writeFloat(int: number, position?: number): void;
 
   writeStr(str: string, doNotWriteLen?: boolean): void;
 }
-
-declare function deferred<T>(): Promise<T> & {
-  accept: (value: T) => void;
-  reject: (reason?: any) => void;
-};
 
 /**
  * Reads a byte buffer sequentially.

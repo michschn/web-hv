@@ -46,7 +46,7 @@ export class RecorderService {
     await videoCapture.record();
   }
 
-  async stopRecording(): Promise<Recording> {
+  async stopRecording(): Promise<string> {
     try {
       const recording = checkNotNull(this._inProgressRecording);
 
@@ -59,7 +59,7 @@ export class RecorderService {
 
       await this._storeScreenRecording(await videoCapturePromise, recordingId);
 
-      return this.loadRecoring(recordingId);
+      return recordingId;
     } finally {
       this._inProgressRecording = null;
     }

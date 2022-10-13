@@ -30,6 +30,7 @@ import { MotionViewerComponent } from './motion-viewer/motion-viewer.component';
 import { UiModule } from '../ui/ui.module';
 import { RecorderService } from '../model/recording/recorder.service';
 import { RecordingViewerComponent } from './recording-viewer/recording-viewer.component';
+import { AppRoutingModule } from './app-routing.module';
 
 @NgModule({
   declarations: [AppComponent, MotionViewerComponent, RecordingViewerComponent],
@@ -42,6 +43,7 @@ import { RecordingViewerComponent } from './recording-viewer/recording-viewer.co
     MatButtonModule,
     MatMenuModule,
     UiModule,
+    AppRoutingModule,
   ],
   providers: [
     {

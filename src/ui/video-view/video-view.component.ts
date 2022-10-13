@@ -67,6 +67,7 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
     this.updateVideoSize();
 
     if (newSource) {
+      newSource.play();
       this._sourceDisposer.addListener(newSource, `metadata-changed`, () => {
         this.updateVideoSize();
       });

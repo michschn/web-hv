@@ -14,19 +14,44 @@
  * limitations under the License.
  */
 
-import { Component, Input } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Recording } from '../../model/recording/recording';
+import { ActivatedRoute, Router } from '@angular/router';
+import { RecorderService } from '../../model/recording/recorder.service';
+import { ProgressTracker } from '../../utils/progress';
 
 @Component({
   selector: 'app-recording-viewer',
   templateUrl: './recording-viewer.component.html',
   styleUrls: ['./recording-viewer.component.scss'],
 })
-export class RecordingViewerComponent {
-  constructor() {}
+export class RecordingViewerComponent implements OnInit, OnDestroy {
+  constructor(
+    private _route: ActivatedRoute,
+    private _router: Router,
+    private _recordingService: RecorderService,
+    private _progressTracker: ProgressTracker
+  ) {}
 
-  @Input()
   recording?: Recording;
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this._route.params.subscribe(async routeParams => {
+      const recordingId = routeParams['id'];
+      const recordingPromise = this._recordingService.loadRecoring(recordingId);
+      this._progressTracker.trackPromise(recordingPromise);
+
+      const recording = await recordingPromise;
+      if (recordingId == this._route.snapshot.params['id']) {
+        this.recording?.dispose();
+        this.recording = recording;
+      } else {
+        recording.dispose();
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.recording?.dispose();
+  }
 }

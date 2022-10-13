@@ -19,7 +19,7 @@ import { Disposer } from '../utils/disposer';
 import { MotionConnection, State } from '../model/motion_connection';
 import { ProgressTracker } from '../utils/progress';
 import { RecorderService } from '../model/recording/recorder.service';
-import { Recording } from '../model/recording/recording';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -30,7 +30,8 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private _motionConnection: MotionConnection,
     private _recordingService: RecorderService,
-    private _progressTracker: ProgressTracker
+    private _progressTracker: ProgressTracker,
+    private _router: Router
   ) {}
 
   private readonly _disposer = new Disposer();
@@ -42,8 +43,6 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this._motionConnection.disconnect();
   }
-
-  recording?: Recording;
 
   get connectionStateIcon(): string {
     return ConnectionStateIndicator[this._motionConnection.state.type].icon;
@@ -68,19 +67,12 @@ export class AppComponent implements OnInit, OnDestroy {
   async toggleRecording() {
     if (this._recordingService.isRecording) {
       const recordingPromise = this._recordingService.stopRecording();
-      this.recording = await this._progressTracker.trackPromise(recordingPromise);
-
+      const recordingId = await this._progressTracker.trackPromise(recordingPromise);
+      this._router.navigate(['recording', { id: recordingId }]);
     } else {
-      this.clearRecording();
       this._recordingService.startRecording();
     }
   }
-
-  clearRecording() {
-    this.recording?.dispose();
-    this.recording = undefined;
-  }
-
 }
 
 const ConnectionStateIndicator: Record<State['type'], { label: string; icon: string }> = {

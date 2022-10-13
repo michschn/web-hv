@@ -28,8 +28,10 @@ export class ProgressTracker extends EventTarget {
   }
 
   trackPromise<T>(promise: Promise<T>): Promise<T> {
-    this.beginProgress();
-    promise.finally(() => this.endProgress());
+    queueMicrotask(() => {
+      this.beginProgress();
+      promise.finally(() => this.endProgress());
+    });
     return promise;
   }
 

@@ -30,6 +30,10 @@ mat-toolbar {
   flex: 0 0 64px;
 }
 
+mat-toolbar button {
+  margin-left: 8px;
+}
+
 .content {
   position: relative;
   display: flex;
@@ -43,9 +47,4 @@ mat-progress-bar {
   top: 0;
   left: 0;
   right: 0;
-}
-
-app-motion-viewer,
-app-recording-viewer {
-  flex-grow: 1;
 }

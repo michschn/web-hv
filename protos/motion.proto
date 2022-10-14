@@ -1,27 +1,25 @@
-// Copyright 2022 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 syntax = "proto2";
 
-package com.android.motion;
+package com.android.app.motiontool.proto;
 
-option java_outer_classname = "MotionTools";
+option java_multiple_files = true;
 
-// RPC request messages.
-//
-// This is used to dispatch RPCs via the single MOTO DDM handler.
-// Refer to respective request message documentation for details.
 message MotionToolsRequest {
   oneof type {
     HandshakeRequest handshake = 1;
@@ -50,6 +48,7 @@ message ErrorResponse {
   enum Code {
     UNKNOWN = 0;
     INVALID_REQUEST = 1;
+    UNKNOWN_TRACE_ID = 2;
   }
 
   optional Code code = 1;
@@ -87,21 +86,59 @@ message BeginTraceRequest {
 }
 
 message BeginTraceResponse {
+  optional int32 trace_id = 1;
 }
 
 // Disabled motion tracing for the specified window
 message EndTraceRequest {
-  optional WindowIdentifier window = 1;
+  optional int32 trace_id = 1;
 }
 
 message EndTraceResponse {
+  optional int32 trace_id = 1;
 }
 
-// Polls collected motion trace request.
+// Polls collected motion trace data collected since the last PollTraceRequest (or the
+// BeginTraceRequest)
 message PollTraceRequest {
-  optional WindowIdentifier window = 1;
+  optional int32 trace_id = 1;
 }
 
 message PollTraceResponse {
+  repeated FrameData frame_data = 1;
+  optional int32 trace_id = 2;
+}
 
+message FrameData {
+  optional int64 timestamp = 1;
+  optional ViewNode node = 2;
+}
+
+// This is almost the same message definition as in view_capture.proto. The only difference is that
+// the classname is inlined.
+message ViewNode {
+  optional string classname = 1;
+  optional int32 hashcode = 2;
+
+  repeated ViewNode children = 3;
+
+  optional string id = 4;
+  optional int32 left = 5;
+  optional int32 top = 6;
+  optional int32 width = 7;
+  optional int32 height = 8;
+  optional int32 scroll_x = 9;
+  optional int32 scroll_y = 10;
+
+  optional float translation_x = 11;
+  optional float translation_y = 12;
+  optional float scale_x = 13 [default = 1];
+  optional float scale_y = 14 [default = 1];
+  optional float alpha = 15 [default = 1];
+
+  optional bool will_not_draw = 16;
+  optional bool clip_children = 17;
+  optional int32 visibility = 18;
+
+  optional float elevation = 19;
 }

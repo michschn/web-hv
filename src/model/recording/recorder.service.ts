@@ -19,10 +19,12 @@ import { MotionConnection } from '../motion_connection';
 import { checkNotNull, checkState } from '../../utils/preconditions';
 import { Recording } from './recording';
 import { VideoCapture } from '../video/video-capture';
+import * as generated_proto from '../../proto/motion.js';
+import motion_proto = generated_proto.com.android.app.motiontool.proto;
 
 @Injectable()
 export class RecorderService {
-  private _inProgressRecording: OngoingRecordingImpl | null = null;
+  private _inProgressRecording: OngoingRecording | null = null;
 
   constructor(private readonly _motionConnection: MotionConnection) {
     checkState(Worker !== undefined);
@@ -41,9 +43,11 @@ export class RecorderService {
 
     const videoCapture = await this._motionConnection.createVideoCapture();
 
-    this._inProgressRecording = new OngoingRecordingImpl(videoCapture);
+    const [traceId] = await Promise.all([this._beginTrace(), videoCapture.record()]);
 
-    await videoCapture.record();
+    const pollInterval = window.setInterval(() => this._collectTraceData(), 100);
+
+    this._inProgressRecording = new OngoingRecording(videoCapture, traceId, pollInterval);
   }
 
   async stopRecording(): Promise<string> {
@@ -52,12 +56,16 @@ export class RecorderService {
 
       const motionDataProto = new Uint8Array();
 
-      const recordingPromise = this._createRecordingEntry(motionDataProto);
-      const videoCapturePromise = recording.videoCapture.stop();
+      const [traceData, videoCaptureBytes] = await Promise.all([
+        this._endTrace(recording),
+        recording.videoCapture.stop(),
+      ]);
 
-      const recordingId = await recordingPromise;
+      console.log(traceData);
 
-      await this._storeScreenRecording(await videoCapturePromise, recordingId);
+      const recordingId = await this._createRecordingEntry(motionDataProto);
+
+      await this._storeScreenRecording(videoCaptureBytes, recordingId);
 
       return recordingId;
     } finally {
@@ -90,10 +98,65 @@ export class RecorderService {
     const fileTargetStream = await recordingFile.createWritable();
     await videoSourceStream.pipeTo(fileTargetStream);
   }
+
+  async _beginTrace(): Promise<number> {
+    const request = new motion_proto.MotionToolsRequest({
+      beginTrace: new motion_proto.BeginTraceRequest({
+        window: new motion_proto.WindowIdentifier({
+          rootWindow: this._motionConnection.windowId,
+        }),
+      }),
+    });
+
+    const response = await this._motionConnection.sendRequest(request);
+    if (response.error) {
+      throw new Error(response.error.message ?? 'Unknown error');
+    }
+    return checkNotNull(response.beginTrace?.traceId);
+  }
+
+  async _endTrace(recording: OngoingRecording): Promise<Array<motion_proto.IFrameData>> {
+    clearInterval(recording.pollIntervalId);
+    await this._collectTraceData();
+
+    const request = new motion_proto.MotionToolsRequest({
+      endTrace: new motion_proto.EndTraceRequest({
+        traceId: recording.traceId,
+      }),
+    });
+
+    const response = await this._motionConnection.sendRequest(request);
+    if (response.error) {
+      throw new Error(response.error.message ?? 'Unknown error');
+    }
+    return recording.frameData;
+  }
+
+  async _collectTraceData(): Promise<void> {
+    const recordingState = checkNotNull(this._inProgressRecording);
+    const request = new motion_proto.MotionToolsRequest({
+      pollTrace: new motion_proto.PollTraceRequest({
+        traceId: recordingState.traceId,
+      }),
+    });
+
+    const response = await this._motionConnection.sendRequest(request);
+    if (response.error) {
+      throw new Error(response.error.message ?? 'Unknown error');
+    }
+
+    const frameData = checkNotNull(response.pollTrace?.frameData);
+    recordingState.frameData.push(...frameData);
+  }
 }
 
-class OngoingRecordingImpl {
-  constructor(public readonly videoCapture: VideoCapture) {}
+class OngoingRecording {
+  readonly frameData: motion_proto.IFrameData[] = [];
+  constructor(
+    public readonly videoCapture: VideoCapture,
+    public readonly traceId: number,
+    public readonly pollIntervalId: number
+  ) {}
 }
 
 async function getOrCreateFileHandle(name: string, directory: FileSystemDirectoryHandle) {

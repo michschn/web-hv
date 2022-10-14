@@ -20,7 +20,7 @@ import { Deferred, isNamedError, namedError } from '../utils/utils';
 import * as generated_proto from '../proto/motion.js';
 import { LiveViewSource } from './video/live-view-source';
 import { VideoCapture } from './video/video-capture';
-import motion_proto = generated_proto.com.android.motion;
+import motion_proto = generated_proto.com.android.app.motiontool.proto;
 
 const CLIENT_VERSION = 1;
 const MOTION_TOOLS_CHUNK_TYPE = 0x4d_4f_54_4f; // 'MOTO';
@@ -157,6 +157,7 @@ export class MotionConnection extends EventTarget {
       }
 
       await this.sendHandshake();
+      // await this.sendHandshake();
 
       this.state = { type: 'connected' };
     } catch (e) {
@@ -170,6 +171,7 @@ export class MotionConnection extends EventTarget {
   ): Promise<motion_proto.MotionToolsResponse> {
     const jdwp = checkNotNull(this._jdwp);
 
+    console.log(request);
     const requestBytes = motion_proto.MotionToolsRequest.encode(request).finish();
 
     const responseStream = await jdwp.writeChunk(MOTION_TOOLS_CHUNK_TYPE, requestBytes);
@@ -182,7 +184,10 @@ export class MotionConnection extends EventTarget {
     // a byte array for protobuf parsing, this has to be skipped.
     const responseProtoBytes = responseStream.data.slice(responseStream.pos);
 
-    return motion_proto.MotionToolsResponse.decode(responseProtoBytes);
+    const motionToolsResponse = motion_proto.MotionToolsResponse.decode(responseProtoBytes);
+    console.log(motionToolsResponse);
+
+    return motionToolsResponse;
   }
 
   /**

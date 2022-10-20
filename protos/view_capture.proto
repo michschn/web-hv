@@ -16,12 +16,11 @@
 
 syntax = "proto2";
 
-package com.android.launcher3.view;
+package com.android.app.viewcapture.data;
 
-option java_outer_classname = "ViewCaptureData";
+option java_multiple_files = true;
 
 message ExportedData {
-
   repeated FrameData frameData = 1;
   repeated string classname = 2;
 }

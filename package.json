@@ -52,7 +52,7 @@
   },
   "scripts": {
     "format": "prettier \"src/**/*\" --write --ignore-path src/proto/*",
-    "genproto": "pbjs -t static-module -w es6 -o src/proto/motion.js protos/motion.proto && pbts -o src/proto/motion.d.ts src/proto/motion.js",
+    "genproto": "pbjs -t static-module -w es6 -o src/proto/motion_tool.js protos/motion_tool.proto protos/view_capture.proto && pbts -o src/proto/motion_tool.d.ts src/proto/motion_tool.js",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",

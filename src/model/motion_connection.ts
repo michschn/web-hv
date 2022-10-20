@@ -17,10 +17,10 @@
 import { fixedRetryDelay, NonRetryableError, retry } from '../utils/retry';
 import { checkNotNull, checkState } from '../utils/preconditions';
 import { Deferred, isNamedError, namedError } from '../utils/utils';
-import * as generated_proto from '../proto/motion.js';
+import * as generated_proto from '../proto/motion_tool.js';
 import { LiveViewSource } from './video/live-view-source';
 import { VideoCapture } from './video/video-capture';
-import motion_proto = generated_proto.com.android.app.motiontool.proto;
+import motion_tool = generated_proto.com.android.app.motiontool;
 
 const CLIENT_VERSION = 1;
 const MOTION_TOOLS_CHUNK_TYPE = 0x4d_4f_54_4f; // 'MOTO';
@@ -167,12 +167,12 @@ export class MotionConnection extends EventTarget {
   }
 
   async sendRequest(
-    request: motion_proto.MotionToolsRequest
-  ): Promise<motion_proto.MotionToolsResponse> {
+    request: motion_tool.MotionToolsRequest
+  ): Promise<motion_tool.MotionToolsResponse> {
     const jdwp = checkNotNull(this._jdwp);
 
     console.log(request);
-    const requestBytes = motion_proto.MotionToolsRequest.encode(request).finish();
+    const requestBytes = motion_tool.MotionToolsRequest.encode(request).finish();
 
     const responseStream = await jdwp.writeChunk(MOTION_TOOLS_CHUNK_TYPE, requestBytes);
     if (responseStream.chunkType !== MOTION_TOOLS_CHUNK_TYPE) {
@@ -184,7 +184,7 @@ export class MotionConnection extends EventTarget {
     // a byte array for protobuf parsing, this has to be skipped.
     const responseProtoBytes = responseStream.data.slice(responseStream.pos);
 
-    const motionToolsResponse = motion_proto.MotionToolsResponse.decode(responseProtoBytes);
+    const motionToolsResponse = motion_tool.MotionToolsResponse.decode(responseProtoBytes);
     console.log(motionToolsResponse);
 
     return motionToolsResponse;
@@ -262,9 +262,9 @@ export class MotionConnection extends EventTarget {
   }
 
   async sendHandshake(): Promise<void> {
-    const request = new motion_proto.MotionToolsRequest({
-      handshake: new motion_proto.HandshakeRequest({
-        window: new motion_proto.WindowIdentifier({
+    const request = new motion_tool.MotionToolsRequest({
+      handshake: new motion_tool.HandshakeRequest({
+        window: new motion_tool.WindowIdentifier({
           rootWindow: this.windowId,
         }),
         clientVersion: CLIENT_VERSION,

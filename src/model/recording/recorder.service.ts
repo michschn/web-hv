@@ -19,8 +19,9 @@ import { MotionConnection } from '../motion_connection';
 import { checkNotNull, checkState } from '../../utils/preconditions';
 import { Recording } from './recording';
 import { VideoCapture } from '../video/video-capture';
-import * as generated_proto from '../../proto/motion.js';
-import motion_proto = generated_proto.com.android.app.motiontool.proto;
+import * as generated_proto from '../../proto/motion_tool.js';
+import motion_tool = generated_proto.com.android.app.motiontool;
+import view_capture = generated_proto.com.android.app.viewcapture.data;
 
 @Injectable()
 export class RecorderService {
@@ -100,9 +101,9 @@ export class RecorderService {
   }
 
   async _beginTrace(): Promise<number> {
-    const request = new motion_proto.MotionToolsRequest({
-      beginTrace: new motion_proto.BeginTraceRequest({
-        window: new motion_proto.WindowIdentifier({
+    const request = new motion_tool.MotionToolsRequest({
+      beginTrace: new motion_tool.BeginTraceRequest({
+        window: new motion_tool.WindowIdentifier({
           rootWindow: this._motionConnection.windowId,
         }),
       }),
@@ -115,12 +116,12 @@ export class RecorderService {
     return checkNotNull(response.beginTrace?.traceId);
   }
 
-  async _endTrace(recording: OngoingRecording): Promise<Array<motion_proto.IFrameData>> {
+  async _endTrace(recording: OngoingRecording): Promise<Array<view_capture.IFrameData>> {
     clearInterval(recording.pollIntervalId);
     await this._collectTraceData();
 
-    const request = new motion_proto.MotionToolsRequest({
-      endTrace: new motion_proto.EndTraceRequest({
+    const request = new motion_tool.MotionToolsRequest({
+      endTrace: new motion_tool.EndTraceRequest({
         traceId: recording.traceId,
       }),
     });
@@ -134,8 +135,8 @@ export class RecorderService {
 
   async _collectTraceData(): Promise<void> {
     const recordingState = checkNotNull(this._inProgressRecording);
-    const request = new motion_proto.MotionToolsRequest({
-      pollTrace: new motion_proto.PollTraceRequest({
+    const request = new motion_tool.MotionToolsRequest({
+      pollTrace: new motion_tool.PollTraceRequest({
         traceId: recordingState.traceId,
       }),
     });
@@ -151,7 +152,7 @@ export class RecorderService {
 }
 
 class OngoingRecording {
-  readonly frameData: motion_proto.IFrameData[] = [];
+  readonly frameData: view_capture.IFrameData[] = [];
   constructor(
     public readonly videoCapture: VideoCapture,
     public readonly traceId: number,

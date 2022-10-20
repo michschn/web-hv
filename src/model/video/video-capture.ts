@@ -37,6 +37,9 @@ export class VideoCapture {
     );
 
     this._captureState = new CaptureState(shellStream, filename);
+    // There is no information on when the recording actually started.
+    // The video will be truncated at the UI level once recorded.
+    await delay(200);
   }
 
   async stop(): Promise<ReadableStream<Uint8Array>> {

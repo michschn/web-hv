@@ -2347,7 +2347,7 @@ export const com = $root.com = (() => {
                      * Properties of an EndTraceResponse.
                      * @memberof com.android.app.motiontool
                      * @interface IEndTraceResponse
-                     * @property {Array.<com.android.app.viewcapture.data.IFrameData>|null} [frameData] EndTraceResponse frameData
+                     * @property {com.android.app.viewcapture.data.IExportedData|null} [exportedData] EndTraceResponse exportedData
                      */
 
                     /**
@@ -2359,7 +2359,6 @@ export const com = $root.com = (() => {
                      * @param {com.android.app.motiontool.IEndTraceResponse=} [properties] Properties to set
                      */
                     function EndTraceResponse(properties) {
-                        this.frameData = [];
                         if (properties)
                             for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                                 if (properties[keys[i]] != null)
@@ -2367,12 +2366,12 @@ export const com = $root.com = (() => {
                     }
 
                     /**
-                     * EndTraceResponse frameData.
-                     * @member {Array.<com.android.app.viewcapture.data.IFrameData>} frameData
+                     * EndTraceResponse exportedData.
+                     * @member {com.android.app.viewcapture.data.IExportedData|null|undefined} exportedData
                      * @memberof com.android.app.motiontool.EndTraceResponse
                      * @instance
                      */
-                    EndTraceResponse.prototype.frameData = $util.emptyArray;
+                    EndTraceResponse.prototype.exportedData = null;
 
                     /**
                      * Creates a new EndTraceResponse instance using the specified properties.
@@ -2398,9 +2397,8 @@ export const com = $root.com = (() => {
                     EndTraceResponse.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.frameData != null && message.frameData.length)
-                            for (let i = 0; i < message.frameData.length; ++i)
-                                $root.com.android.app.viewcapture.data.FrameData.encode(message.frameData[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        if (message.exportedData != null && Object.hasOwnProperty.call(message, "exportedData"))
+                            $root.com.android.app.viewcapture.data.ExportedData.encode(message.exportedData, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                         return writer;
                     };
 
@@ -2436,9 +2434,7 @@ export const com = $root.com = (() => {
                             let tag = reader.uint32();
                             switch (tag >>> 3) {
                             case 1: {
-                                    if (!(message.frameData && message.frameData.length))
-                                        message.frameData = [];
-                                    message.frameData.push($root.com.android.app.viewcapture.data.FrameData.decode(reader, reader.uint32()));
+                                    message.exportedData = $root.com.android.app.viewcapture.data.ExportedData.decode(reader, reader.uint32());
                                     break;
                                 }
                             default:
@@ -2476,14 +2472,10 @@ export const com = $root.com = (() => {
                     EndTraceResponse.verify = function verify(message) {
                         if (typeof message !== "object" || message === null)
                             return "object expected";
-                        if (message.frameData != null && message.hasOwnProperty("frameData")) {
-                            if (!Array.isArray(message.frameData))
-                                return "frameData: array expected";
-                            for (let i = 0; i < message.frameData.length; ++i) {
-                                let error = $root.com.android.app.viewcapture.data.FrameData.verify(message.frameData[i]);
-                                if (error)
-                                    return "frameData." + error;
-                            }
+                        if (message.exportedData != null && message.hasOwnProperty("exportedData")) {
+                            let error = $root.com.android.app.viewcapture.data.ExportedData.verify(message.exportedData);
+                            if (error)
+                                return "exportedData." + error;
                         }
                         return null;
                     };
@@ -2500,15 +2492,10 @@ export const com = $root.com = (() => {
                         if (object instanceof $root.com.android.app.motiontool.EndTraceResponse)
                             return object;
                         let message = new $root.com.android.app.motiontool.EndTraceResponse();
-                        if (object.frameData) {
-                            if (!Array.isArray(object.frameData))
-                                throw TypeError(".com.android.app.motiontool.EndTraceResponse.frameData: array expected");
-                            message.frameData = [];
-                            for (let i = 0; i < object.frameData.length; ++i) {
-                                if (typeof object.frameData[i] !== "object")
-                                    throw TypeError(".com.android.app.motiontool.EndTraceResponse.frameData: object expected");
-                                message.frameData[i] = $root.com.android.app.viewcapture.data.FrameData.fromObject(object.frameData[i]);
-                            }
+                        if (object.exportedData != null) {
+                            if (typeof object.exportedData !== "object")
+                                throw TypeError(".com.android.app.motiontool.EndTraceResponse.exportedData: object expected");
+                            message.exportedData = $root.com.android.app.viewcapture.data.ExportedData.fromObject(object.exportedData);
                         }
                         return message;
                     };
@@ -2526,13 +2513,10 @@ export const com = $root.com = (() => {
                         if (!options)
                             options = {};
                         let object = {};
-                        if (options.arrays || options.defaults)
-                            object.frameData = [];
-                        if (message.frameData && message.frameData.length) {
-                            object.frameData = [];
-                            for (let j = 0; j < message.frameData.length; ++j)
-                                object.frameData[j] = $root.com.android.app.viewcapture.data.FrameData.toObject(message.frameData[j], options);
-                        }
+                        if (options.defaults)
+                            object.exportedData = null;
+                        if (message.exportedData != null && message.hasOwnProperty("exportedData"))
+                            object.exportedData = $root.com.android.app.viewcapture.data.ExportedData.toObject(message.exportedData, options);
                         return object;
                     };
 
@@ -2774,7 +2758,7 @@ export const com = $root.com = (() => {
                      * Properties of a PollTraceResponse.
                      * @memberof com.android.app.motiontool
                      * @interface IPollTraceResponse
-                     * @property {Array.<com.android.app.viewcapture.data.IFrameData>|null} [frameData] PollTraceResponse frameData
+                     * @property {com.android.app.viewcapture.data.IExportedData|null} [exportedData] PollTraceResponse exportedData
                      */
 
                     /**
@@ -2786,7 +2770,6 @@ export const com = $root.com = (() => {
                      * @param {com.android.app.motiontool.IPollTraceResponse=} [properties] Properties to set
                      */
                     function PollTraceResponse(properties) {
-                        this.frameData = [];
                         if (properties)
                             for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                                 if (properties[keys[i]] != null)
@@ -2794,12 +2777,12 @@ export const com = $root.com = (() => {
                     }
 
                     /**
-                     * PollTraceResponse frameData.
-                     * @member {Array.<com.android.app.viewcapture.data.IFrameData>} frameData
+                     * PollTraceResponse exportedData.
+                     * @member {com.android.app.viewcapture.data.IExportedData|null|undefined} exportedData
                      * @memberof com.android.app.motiontool.PollTraceResponse
                      * @instance
                      */
-                    PollTraceResponse.prototype.frameData = $util.emptyArray;
+                    PollTraceResponse.prototype.exportedData = null;
 
                     /**
                      * Creates a new PollTraceResponse instance using the specified properties.
@@ -2825,9 +2808,8 @@ export const com = $root.com = (() => {
                     PollTraceResponse.encode = function encode(message, writer) {
                         if (!writer)
                             writer = $Writer.create();
-                        if (message.frameData != null && message.frameData.length)
-                            for (let i = 0; i < message.frameData.length; ++i)
-                                $root.com.android.app.viewcapture.data.FrameData.encode(message.frameData[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        if (message.exportedData != null && Object.hasOwnProperty.call(message, "exportedData"))
+                            $root.com.android.app.viewcapture.data.ExportedData.encode(message.exportedData, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                         return writer;
                     };
 
@@ -2863,9 +2845,7 @@ export const com = $root.com = (() => {
                             let tag = reader.uint32();
                             switch (tag >>> 3) {
                             case 1: {
-                                    if (!(message.frameData && message.frameData.length))
-                                        message.frameData = [];
-                                    message.frameData.push($root.com.android.app.viewcapture.data.FrameData.decode(reader, reader.uint32()));
+                                    message.exportedData = $root.com.android.app.viewcapture.data.ExportedData.decode(reader, reader.uint32());
                                     break;
                                 }
                             default:
@@ -2903,14 +2883,10 @@ export const com = $root.com = (() => {
                     PollTraceResponse.verify = function verify(message) {
                         if (typeof message !== "object" || message === null)
                             return "object expected";
-                        if (message.frameData != null && message.hasOwnProperty("frameData")) {
-                            if (!Array.isArray(message.frameData))
-                                return "frameData: array expected";
-                            for (let i = 0; i < message.frameData.length; ++i) {
-                                let error = $root.com.android.app.viewcapture.data.FrameData.verify(message.frameData[i]);
-                                if (error)
-                                    return "frameData." + error;
-                            }
+                        if (message.exportedData != null && message.hasOwnProperty("exportedData")) {
+                            let error = $root.com.android.app.viewcapture.data.ExportedData.verify(message.exportedData);
+                            if (error)
+                                return "exportedData." + error;
                         }
                         return null;
                     };
@@ -2927,15 +2903,10 @@ export const com = $root.com = (() => {
                         if (object instanceof $root.com.android.app.motiontool.PollTraceResponse)
                             return object;
                         let message = new $root.com.android.app.motiontool.PollTraceResponse();
-                        if (object.frameData) {
-                            if (!Array.isArray(object.frameData))
-                                throw TypeError(".com.android.app.motiontool.PollTraceResponse.frameData: array expected");
-                            message.frameData = [];
-                            for (let i = 0; i < object.frameData.length; ++i) {
-                                if (typeof object.frameData[i] !== "object")
-                                    throw TypeError(".com.android.app.motiontool.PollTraceResponse.frameData: object expected");
-                                message.frameData[i] = $root.com.android.app.viewcapture.data.FrameData.fromObject(object.frameData[i]);
-                            }
+                        if (object.exportedData != null) {
+                            if (typeof object.exportedData !== "object")
+                                throw TypeError(".com.android.app.motiontool.PollTraceResponse.exportedData: object expected");
+                            message.exportedData = $root.com.android.app.viewcapture.data.ExportedData.fromObject(object.exportedData);
                         }
                         return message;
                     };
@@ -2953,13 +2924,10 @@ export const com = $root.com = (() => {
                         if (!options)
                             options = {};
                         let object = {};
-                        if (options.arrays || options.defaults)
-                            object.frameData = [];
-                        if (message.frameData && message.frameData.length) {
-                            object.frameData = [];
-                            for (let j = 0; j < message.frameData.length; ++j)
-                                object.frameData[j] = $root.com.android.app.viewcapture.data.FrameData.toObject(message.frameData[j], options);
-                        }
+                        if (options.defaults)
+                            object.exportedData = null;
+                        if (message.exportedData != null && message.hasOwnProperty("exportedData"))
+                            object.exportedData = $root.com.android.app.viewcapture.data.ExportedData.toObject(message.exportedData, options);
                         return object;
                     };
 

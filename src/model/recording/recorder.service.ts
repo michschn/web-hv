@@ -19,9 +19,15 @@ import { MotionConnection } from '../motion_connection';
 import { checkNotNull, checkState } from '../../utils/preconditions';
 import { Recording } from './recording';
 import { VideoCapture } from '../video/video-capture';
-import * as generated_proto from '../../proto/motion_tool.js';
-import motion_tool = generated_proto.com.android.app.motiontool;
-import view_capture = generated_proto.com.android.app.viewcapture.data;
+import * as api_proto from '../../proto/api.js';
+import * as storage_proto from '../../proto/storage.js';
+import { FILENAME_SCREENRECORDING, FILENAME_TRRACE, getOrCreateFileHandle } from './files';
+import Long from 'long';
+import motion_tool = api_proto.com.android.app.motiontool;
+import view_capture = api_proto.com.android.app.viewcapture.data;
+import storage = storage_proto.motion;
+
+const POLL_DELAY_MS = 500;
 
 @Injectable()
 export class RecorderService {
@@ -44,60 +50,45 @@ export class RecorderService {
 
     const videoCapture = await this._motionConnection.createVideoCapture();
 
-    const [traceId] = await Promise.all([this._beginTrace(), videoCapture.record()]);
+    // start the motion trace first. Since motion frame data must be available for all video frames,
+    // it's easy to just toss out the extra motion trace data afterwards.
+    const traceId = await this._beginTrace();
 
-    const pollInterval = window.setInterval(() => this._collectTraceData(), 100);
+    await videoCapture.record();
 
-    this._inProgressRecording = new OngoingRecording(videoCapture, traceId, pollInterval);
+    const nextPollHandle = window.setTimeout(() => this._collectTraceData(), POLL_DELAY_MS);
+
+    this._inProgressRecording = new OngoingRecording(videoCapture, traceId, nextPollHandle);
   }
 
   async stopRecording(): Promise<string> {
     try {
       const recording = checkNotNull(this._inProgressRecording);
+      clearInterval(recording.nextPollHandle);
 
-      const motionDataProto = new Uint8Array();
+      const recordingId = crypto.randomUUID();
 
-      const [traceData, videoCaptureBytes] = await Promise.all([
+      // Stop video recording
+      const videoCaptureBytes = await recording.videoCapture.stop();
+      await Promise.all([
         this._endTrace(recording),
-        recording.videoCapture.stop(),
+        await storeScreenRecording(videoCaptureBytes, recordingId),
       ]);
 
-      console.log(traceData);
+      const { processName, windowId } = this._motionConnection;
+      const windowName = windowId.substring(0, windowId.indexOf('/'));
 
-      const recordingId = await this._createRecordingEntry(motionDataProto);
-
-      await this._storeScreenRecording(videoCaptureBytes, recordingId);
+      await createTraceFile(recordingId, {
+        startTime: recording.startTime,
+        capturedMotion: recording.pollData,
+        processName,
+        windowName,
+      });
 
       return recordingId;
     } finally {
       this._inProgressRecording = null;
     }
-  }
-
-  private async _createRecordingEntry(motionDataProto: Uint8Array): Promise<string> {
-    const recordingId = crypto.randomUUID();
-
-    const rootDataDirectory = await navigator.storage.getDirectory();
-    const recordingDataDirectory = await rootDataDirectory.getDirectoryHandle(recordingId, {
-      create: true,
-    });
-    const motionDataFile = await recordingDataDirectory.getFileHandle('motion.data', {
-      create: true,
-    });
-
-    return recordingId;
-  }
-
-  private async _storeScreenRecording(
-    videoSourceStream: ReadableStream<Uint8Array>,
-    recordingId: string
-  ) {
-    const rootDataDirectory = await navigator.storage.getDirectory();
-    const recordingDataDirectory = await rootDataDirectory.getDirectoryHandle(recordingId);
-
-    const recordingFile = await getOrCreateFileHandle('screenrecord.mp4', recordingDataDirectory);
-    const fileTargetStream = await recordingFile.createWritable();
-    await videoSourceStream.pipeTo(fileTargetStream);
   }
 
   async _beginTrace(): Promise<number> {
@@ -116,10 +107,7 @@ export class RecorderService {
     return checkNotNull(response.beginTrace?.traceId);
   }
 
-  async _endTrace(recording: OngoingRecording): Promise<Array<view_capture.IFrameData>> {
-    clearInterval(recording.pollIntervalId);
-    await this._collectTraceData();
-
+  async _endTrace(recording: OngoingRecording): Promise<void> {
     const request = new motion_tool.MotionToolsRequest({
       endTrace: new motion_tool.EndTraceRequest({
         traceId: recording.traceId,
@@ -130,7 +118,9 @@ export class RecorderService {
     if (response.error) {
       throw new Error(response.error.message ?? 'Unknown error');
     }
-    return recording.frameData;
+    const exportedData = checkNotNull(response.endTrace?.exportedData);
+    recording.pollData.push(exportedData);
+    return;
   }
 
   async _collectTraceData(): Promise<void> {
@@ -146,24 +136,100 @@ export class RecorderService {
       throw new Error(response.error.message ?? 'Unknown error');
     }
 
-    const frameData = checkNotNull(response.pollTrace?.frameData);
-    recordingState.frameData.push(...frameData);
+    const exportedData = checkNotNull(response.pollTrace?.exportedData);
+    recordingState.pollData.push(exportedData);
+
+    if (this._inProgressRecording === recordingState) {
+      // if still in progress, schedule the next poll.
+      recordingState.nextPollHandle = window.setTimeout(
+        () => this._collectTraceData(),
+        POLL_DELAY_MS
+      );
+    }
   }
 }
 
 class OngoingRecording {
-  readonly frameData: view_capture.IFrameData[] = [];
+  readonly startTime: Date;
+  readonly pollData: view_capture.IExportedData[] = [];
   constructor(
     public readonly videoCapture: VideoCapture,
     public readonly traceId: number,
-    public readonly pollIntervalId: number
-  ) {}
+    public nextPollHandle: number
+  ) {
+    this.startTime = new Date();
+  }
 }
 
-async function getOrCreateFileHandle(name: string, directory: FileSystemDirectoryHandle) {
-  try {
-    return await directory.getFileHandle(name);
-  } catch {
-    return await directory.getFileHandle(name, { create: true });
+async function storeScreenRecording(
+  videoSourceStream: ReadableStream<Uint8Array>,
+  recordingId: string
+): Promise<void> {
+  const recordingFile = await getOrCreateFileHandle(FILENAME_SCREENRECORDING, recordingId);
+  const fileTargetStream = await recordingFile.createWritable();
+  await videoSourceStream.pipeTo(fileTargetStream);
+}
+
+async function createTraceFile(
+  recordingId: string,
+  data: {
+    startTime: Date;
+    capturedMotion: view_capture.IExportedData[];
+    processName: string;
+    windowName: string;
   }
+): Promise<void> {
+  const trace = new storage.Trace({
+    id: recordingId,
+    version: 1,
+    name: `Recording on ${data.startTime}`,
+    captureTime: new storage_proto.google.protobuf.Timestamp({
+      seconds: data.startTime.getTime() / 1000,
+      nanos: (data.startTime.getTime() % 1000) * 1_000_000,
+    }),
+    processName: data.processName,
+    windowName: data.windowName,
+  });
+
+  const frameToViewHierarchy: Map<Long, storage_proto.motion.IViewNode> = new Map(
+    data.capturedMotion.flatMap(chunk => [...toFrameByFrameViewHierarchy(chunk).entries()])
+  );
+
+  console.log(`trace`, trace, frameToViewHierarchy);
+  const traceBytes = storage.Trace.encode(trace).finish();
+  const traceFile = await getOrCreateFileHandle(FILENAME_TRRACE, recordingId);
+  const traceFileStream = await traceFile.createWritable();
+  try {
+    traceFileStream.write(traceBytes);
+  } finally {
+    traceFileStream.close();
+  }
+}
+function toFrameByFrameViewHierarchy({
+  frameData,
+  classname,
+}: view_capture.IExportedData): Map<Long, storage_proto.motion.IViewNode> {
+  function getClassName(classNameIndex: number) {
+    return classname?.at(classNameIndex) ?? 'UNKNOWN';
+  }
+
+  return new Map(
+    frameData!.map(({ timestamp, node: rootNode }) => {
+      return [
+        Long.fromValue(checkNotNull(timestamp)),
+        convertViewHierarchy(checkNotNull(rootNode), getClassName),
+      ];
+    })
+  );
+}
+
+function convertViewHierarchy(
+  node: view_capture.IViewNode,
+  getClassName: (classNameIndex: number) => string
+): storage_proto.motion.IViewNode {
+  return new storage_proto.motion.ViewNode({
+    ...node,
+    classname: node.classnameIndex ? getClassName(node.classnameIndex) : null,
+    children: node.children?.map(child => convertViewHierarchy(child, getClassName)),
+  });
 }

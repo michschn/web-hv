@@ -17,10 +17,10 @@
 import { fixedRetryDelay, NonRetryableError, retry } from '../utils/retry';
 import { checkNotNull, checkState } from '../utils/preconditions';
 import { Deferred, isNamedError, namedError } from '../utils/utils';
-import * as generated_proto from '../proto/motion_tool.js';
+import * as api_proto from '../proto/api.js';
 import { LiveViewSource } from './video/live-view-source';
 import { VideoCapture } from './video/video-capture';
-import motion_tool = generated_proto.com.android.app.motiontool;
+import motion_tool = api_proto.com.android.app.motiontool;
 
 const CLIENT_VERSION = 1;
 const MOTION_TOOLS_CHUNK_TYPE = 0x4d_4f_54_4f; // 'MOTO';
@@ -183,7 +183,6 @@ export class MotionConnection extends EventTarget {
     // by the jdwp.writeChunk's response read implementation. To grab the rest of the response as
     // a byte array for protobuf parsing, this has to be skipped.
     const responseProtoBytes = responseStream.data.slice(responseStream.pos);
-
     const motionToolsResponse = motion_tool.MotionToolsResponse.decode(responseProtoBytes);
     console.log(motionToolsResponse);
 

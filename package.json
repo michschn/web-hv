@@ -12,6 +12,7 @@
     "@angular/platform-browser": "^14.2.0",
     "@angular/platform-browser-dynamic": "^14.2.0",
     "@angular/router": "^14.2.0",
+    "@types/long": "^5.0.0",
     "@types/wicg-file-system-access": "^2020.9.5",
     "idb": "^7.1.0",
     "jmuxer": "^2.0.5",
@@ -52,7 +53,9 @@
   },
   "scripts": {
     "format": "prettier \"src/**/*\" --write --ignore-path src/proto/*",
-    "genproto": "pbjs -t static-module -w es6 -o src/proto/motion_tool.js protos/motion_tool.proto protos/view_capture.proto && pbts -o src/proto/motion_tool.d.ts src/proto/motion_tool.js",
+    "genproto": "npm run genproto:api && npm run genproto:storage",
+    "genproto:api": "pbjs -t static-module -w es6 -o src/proto/api.js protos/motion_tool.proto protos/view_capture.proto && pbts -o src/proto/api.d.ts src/proto/api.js",
+    "genproto:storage": "pbjs -t static-module -w es6 -o src/proto/storage.js src/storage/trace.proto && pbts -o src/proto/storage.d.ts src/proto/storage.js",
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",

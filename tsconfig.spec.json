@@ -6,7 +6,8 @@
     "types": [
       "jasmine",
       "w3c-web-usb",
-      "wicg-file-system-access"
+      "wicg-file-system-access",
+      "long"
     ]
   },
   "files": [

@@ -1058,8 +1058,8 @@ export namespace com {
                 /** Properties of an EndTraceResponse. */
                 interface IEndTraceResponse {
 
-                    /** EndTraceResponse frameData */
-                    frameData?: (com.android.app.viewcapture.data.IFrameData[]|null);
+                    /** EndTraceResponse exportedData */
+                    exportedData?: (com.android.app.viewcapture.data.IExportedData|null);
                 }
 
                 /** Represents an EndTraceResponse. */
@@ -1071,8 +1071,8 @@ export namespace com {
                      */
                     constructor(properties?: com.android.app.motiontool.IEndTraceResponse);
 
-                    /** EndTraceResponse frameData. */
-                    public frameData: com.android.app.viewcapture.data.IFrameData[];
+                    /** EndTraceResponse exportedData. */
+                    public exportedData?: (com.android.app.viewcapture.data.IExportedData|null);
 
                     /**
                      * Creates a new EndTraceResponse instance using the specified properties.
@@ -1266,8 +1266,8 @@ export namespace com {
                 /** Properties of a PollTraceResponse. */
                 interface IPollTraceResponse {
 
-                    /** PollTraceResponse frameData */
-                    frameData?: (com.android.app.viewcapture.data.IFrameData[]|null);
+                    /** PollTraceResponse exportedData */
+                    exportedData?: (com.android.app.viewcapture.data.IExportedData|null);
                 }
 
                 /** Represents a PollTraceResponse. */
@@ -1279,8 +1279,8 @@ export namespace com {
                      */
                     constructor(properties?: com.android.app.motiontool.IPollTraceResponse);
 
-                    /** PollTraceResponse frameData. */
-                    public frameData: com.android.app.viewcapture.data.IFrameData[];
+                    /** PollTraceResponse exportedData. */
+                    public exportedData?: (com.android.app.viewcapture.data.IExportedData|null);
 
                     /**
                      * Creates a new PollTraceResponse instance using the specified properties.

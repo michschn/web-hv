@@ -18,6 +18,8 @@ import { TestBed } from '@angular/core/testing';
 
 import { RecorderService } from './recorder.service';
 import { MotionConnection } from '../motion_connection';
+import { BLOB_STORAGE_FACTORY } from '../../storage/blob-storage';
+import { FakeBlobStorage } from '../../storage/blob-storage.fake';
 
 describe('RecorderService', () => {
   let service: RecorderService;
@@ -31,6 +33,10 @@ describe('RecorderService', () => {
         {
           provide: MotionConnection,
           useValue: motionConnection,
+        },
+        {
+          provide: BLOB_STORAGE_FACTORY,
+          useValue: FakeBlobStorage.createStorage,
         },
       ],
     });

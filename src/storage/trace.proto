@@ -34,41 +34,37 @@ message Trace {
   .google.protobuf.Timestamp capture_time = 4;
 
   // the process for which this trace was captured.
-  string process_name =5 ;
+  string process_name = 5 ;
   // the window name for which the view_hierarcy was captured.
-  string window_name =6 ;
+  string window_name = 6 ;
 
   // duration of the trace.
   .google.protobuf.Duration duration = 7;
 
   VideoMetadata video_metadata = 8;
 
+  repeated Frame frames = 9;
+
 }
 
 message VideoMetadata {
   int32 width_px = 1;
   int32 height_px = 2;
-  int32 density = 3;
-}
+  int32 density = 3;}
 
 // Per-frame information
-message Frame  {
+message Frame {
+  // Index number of the frame
+  int32 frame_number = 1;
 
-  // Actual framer nunumber of the frame
-  int64 frame_number = 1;
-
-  // relative timestamp of the frame in nanosecons, .
+  // Zero-based timestamp of the frame, in nanoseconds.
   int64 frame_nanos = 2;
 
-  // The video time in seconds to seek to for this frame.
-  double video_time_seconds = 4;
+  // The video time in seconds.
+  double video_time_seconds = 3;
 
-  // The view hierarchy
-  ViewNode view_hierarchy = 3;
-
-
-
-}
+  // The view hierarchy at this frame.
+  ViewNode view_hierarchy = 4;}
 
 // Captures a view with
 // This is copied so that the evolution of the RPC API is independant of the
@@ -98,6 +94,5 @@ message ViewNode {
   bool clip_children = 17;
   int32 visibility = 18;
 
-  float elevation = 19;
-}
+  float elevation = 19;}
 

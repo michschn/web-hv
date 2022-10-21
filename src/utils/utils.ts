@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import Long from 'long';
+
 /** Promise that completes after the specified `timeMs` */
 export function delay(timeMs: number): Promise<void> {
   return new Promise<void>(complete => setTimeout(complete, timeMs));
@@ -48,4 +50,34 @@ export function namedError(name: string, message?: string): Error {
 
 export function isNamedError(e: unknown, name: string): e is Error {
   return e instanceof Error && e.name === name;
+}
+
+/** Checks whether both `Uint8Array` have the same contents. */
+export function arrayBufferEquals(left: Uint8Array, right: Uint8Array): boolean {
+  if (left.byteLength != right.byteLength) return false;
+
+  for (let i = 0; i < left.byteLength; i++) {
+    if (left.at(i) != right.at(i)) return false;
+  }
+
+  return true;
+}
+
+export function asciiStringToBytes(contents: string): Uint8Array {
+  const result = new TextEncoder().encode(contents);
+  if (result.length != contents.length) {
+    // non-ascii characters require multiple bytes in utf-8.
+    throw new Error(`non-ascii characters found in '${contents}'`);
+  }
+  return result;
+}
+
+/**
+ * Convert a `Long` to a native `bigint`.
+ *
+ * NOTE: do not use `Long` in the code, other than for protobufjs.
+ * */
+export function longToBigInt(value: Long): bigint {
+  const bytes = new DataView(new Uint8Array(value.toBytesBE()).buffer);
+  return value.unsigned ? bytes.getBigUint64(0) : bytes.getBigInt64(0);
 }

@@ -17,16 +17,36 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RecordingViewerComponent } from './recording-viewer.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { RecorderService } from '../../model/recording/recorder.service';
+import { MotionConnection } from '../../model/motion_connection';
+import { BLOB_STORAGE_FACTORY } from '../../storage/blob-storage';
+import { FakeBlobStorage } from '../../storage/blob-storage.fake';
+import { ProgressTracker } from '../../utils/progress';
 
 describe('RecordingViewerComponent', () => {
   let component: RecordingViewerComponent;
   let fixture: ComponentFixture<RecordingViewerComponent>;
 
   beforeEach(async () => {
+    const motionConnection = jasmine.createSpyObj('MotionConnection', ['']);
+
     await TestBed.configureTestingModule({
-      declarations: [ RecordingViewerComponent ]
-    })
-    .compileComponents();
+      declarations: [RecordingViewerComponent],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        RecorderService,
+        ProgressTracker,
+        {
+          provide: MotionConnection,
+          useValue: motionConnection,
+        },
+        {
+          provide: BLOB_STORAGE_FACTORY,
+          useValue: FakeBlobStorage.createStorage,
+        },
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(RecordingViewerComponent);
     component = fixture.componentInstance;

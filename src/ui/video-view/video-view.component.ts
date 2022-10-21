@@ -103,7 +103,6 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
     // Pick the smaller scale factor to ensure both width and height will fit, however do not allow
     // scaling up.
     const scale = Math.min(widthScale, heightScale, 1);
-    console.log(`widthScale: ${widthScale}, heightScale: ${heightScale} scale: ${scale}`);
 
     canvasElement.width = this._source.width * scale;
     canvasElement.height = this._source.height * scale;

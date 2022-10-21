@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { Deferred } from './utils';
+import { arrayBufferEquals, asciiStringToBytes, Deferred, longToBigInt } from './utils';
+import Long from 'long';
 
 describe('DeferredPromise', () => {
   it('can be created', () => {
@@ -41,3 +42,87 @@ describe('DeferredPromise', () => {
   });
 });
 
+describe('arrayBufferEquals', () => {
+  it('returns true for empty buffers', () => {
+    const left = new Uint8Array(0);
+    const right = new Uint8Array(0);
+
+    expect(arrayBufferEquals(left, right)).toBeTrue();
+  });
+
+  it('returns false for different length buffers', () => {
+    const left = new Uint8Array(0);
+    const right = new Uint8Array(1);
+
+    expect(arrayBufferEquals(left, right)).toBeFalse();
+  });
+
+  it('returns false for buffer with different contents', () => {
+    const left = new Uint8Array([1, 2]);
+    const right = new Uint8Array([1, 3]);
+
+    expect(arrayBufferEquals(left, right)).toBeFalse();
+  });
+
+  it('returns true for buffer with same contents', () => {
+    const left = new Uint8Array([1, 2]);
+    const right = new Uint8Array([1, 2]);
+
+    expect(arrayBufferEquals(left, right)).toBeTrue();
+  });
+
+  it('returns true for same subarray view', () => {
+    const large = new Uint8Array([0, 1, 2, 3]);
+    const left = large.subarray(1, 3);
+    const right = new Uint8Array([1, 2]);
+
+    expect(arrayBufferEquals(left, right)).toBeTrue();
+  });
+});
+
+describe('asciiStringToBytes', () => {
+  it('returns empty buffer for empty string', () => {
+    const actual = asciiStringToBytes('');
+    const expected = new Uint8Array(0);
+
+    expect(arrayBufferEquals(actual, expected)).toBeTrue();
+  });
+
+  it('returns buffer with ascii bytes', () => {
+    const actual = asciiStringToBytes('foo');
+    console.log(actual);
+    const expected = new Uint8Array([102, 111, 111]);
+
+    expect(arrayBufferEquals(actual, expected)).toBeTrue();
+  });
+
+  it('throws on non-ascii characters', () => {
+    expect(() => asciiStringToBytes('🤯')).toThrow();
+  });
+});
+
+describe('longToBigInt', () => {
+  it('zero', () => {
+    expect(longToBigInt(Long.UZERO)).toBe(0n);
+  });
+
+  it('one', () => {
+    expect(longToBigInt(Long.ONE)).toBe(1n);
+  });
+
+  it('minus one', () => {
+    expect(longToBigInt(Long.NEG_ONE)).toBe(-1n);
+  });
+
+  it('max unsigned', () => {
+    expect(longToBigInt(Long.MAX_UNSIGNED_VALUE)).toBe((1n << 64n) - 1n);
+  });
+
+  it('max signed', () => {
+    expect(longToBigInt(Long.MAX_VALUE)).toBe((1n << 63n) - 1n);
+  });
+
+  it('min signed', () => {
+    expect(longToBigInt(Long.MIN_VALUE)).toBe(-1n << 63n);
+  });
+});

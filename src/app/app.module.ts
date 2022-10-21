@@ -31,6 +31,7 @@ import { UiModule } from '../ui/ui.module';
 import { RecorderService } from '../model/recording/recorder.service';
 import { RecordingViewerComponent } from './recording-viewer/recording-viewer.component';
 import { AppRoutingModule } from './app-routing.module';
+import { BLOB_STORAGE_FACTORY, OpfsBlobStorage } from '../storage/blob-storage';
 
 @NgModule({
   declarations: [AppComponent, MotionViewerComponent, RecordingViewerComponent],
@@ -50,6 +51,10 @@ import { AppRoutingModule } from './app-routing.module';
       provide: MotionConnection,
       useFactory: () =>
         MotionConnection.createFromUrlParams(new URLSearchParams(window.location.search)),
+    },
+    {
+      provide: BLOB_STORAGE_FACTORY,
+      useValue: OpfsBlobStorage.createStorage,
     },
     RecorderService,
     ProgressTracker,

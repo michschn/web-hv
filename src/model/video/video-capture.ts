@@ -98,9 +98,7 @@ async function awaitScreenrecordingWritten(filename: string, syncClient: SyncCli
   while (true) {
     await delay(1000);
     const updatedFileSize = await syncClient.getFileSize(filename);
-    console.log(` file size ${fileSize}`);
     if (fileSize > 5000 && fileSize == updatedFileSize) {
-      console.log(`assume file written ${fileSize}`);
       return;
     }
     fileSize = updatedFileSize;

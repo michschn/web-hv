@@ -16,6 +16,7 @@
     "@types/wicg-file-system-access": "^2020.9.5",
     "idb": "^7.1.0",
     "jmuxer": "^2.0.5",
+    "mp4box": "^0.5.2",
     "protobufjs": "^7.1.2",
     "rxjs": "~7.5.0",
     "stream-browserify": "^3.0.0",

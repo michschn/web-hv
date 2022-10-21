@@ -271,7 +271,7 @@ export class MotionConnection extends EventTarget {
     });
 
     const handshakeResponse = (await this.sendRequest(request)).handshake;
-    console.log(handshakeResponse);
+    console.log("handshake response: " + handshakeResponse);
   }
 }
 

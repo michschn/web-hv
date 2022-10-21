@@ -31,4 +31,12 @@ export class FakeBlobStorage implements BlobStorage {
   readable(name: string): Promise<ReadableStream<Uint8Array>> {
     return Promise.reject('Not implemented');
   }
+
+  objectUrl(name: string): Promise<string> {
+    return Promise.reject('Not implemented');
+  }
+
+  read(name: string): Promise<Uint8Array> {
+    return Promise.reject('Not implemented');
+  }
 }

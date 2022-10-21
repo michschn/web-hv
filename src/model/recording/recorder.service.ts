@@ -19,20 +19,19 @@ import { MotionConnection } from '../motion_connection';
 import { checkNotNull, checkState } from '../../utils/preconditions';
 import { Recording } from './recording';
 import { VideoCapture } from '../video/video-capture';
-import * as api_proto from '../../proto/api.js';
-import * as storage_proto from '../../proto/storage.js';
+import { com } from '../../proto/api.js';
 import { google, motion } from '../../proto/storage.js';
 import Long from 'long';
 import { loadVideoMetadata } from './mp4parser';
 import { BLOB_STORAGE_FACTORY, BlobStorage, BlobStorageFactory } from '../../storage/blob-storage';
 import { BLOB_SCREENRECORDING_NAME, BLOB_TRACE_NAME } from './constants';
 import { longToBigInt } from '../../utils/utils';
-import motion_tool = api_proto.com.android.app.motiontool;
-import view_capture = api_proto.com.android.app.viewcapture.data;
-import storage = storage_proto.motion;
+import motion_tool = com.android.app.motiontool;
+import view_capture = com.android.app.viewcapture.data;
 import Timestamp = google.protobuf.Timestamp;
 import Frame = motion.Frame;
 import VideoMetadata = motion.VideoMetadata;
+import Trace = motion.Trace;
 
 const POLL_DELAY_MS = 500;
 
@@ -52,7 +51,7 @@ export class RecorderService {
   }
 
   async loadRecoring(recordingId: string): Promise<Recording> {
-    return Recording.load(recordingId);
+    return Recording.load(await this._blobStorageFactory(recordingId));
   }
 
   /**
@@ -197,9 +196,9 @@ async function createTraceFile(
     windowName: string;
   }
 ): Promise<void> {
-  const videoMetadata = await loadVideoMetadata(blobStorage);
+  const videoMetadata = await loadVideoMetadata(blobStorage, { readFrameData: true });
 
-  const frameToViewHierarchy: Map<bigint, storage_proto.motion.IViewNode> = new Map(
+  const frameToViewHierarchy: Map<bigint, motion.IViewNode> = new Map(
     data.capturedMotion.flatMap(chunk => [...toFrameByFrameViewHierarchy(chunk).entries()])
   );
 
@@ -229,11 +228,11 @@ async function createTraceFile(
     });
   });
 
-  const trace = new storage.Trace({
+  const trace = new Trace({
     id: data.recordingId,
     version: 1,
     name: `Recording on ${data.startTime}`,
-    captureTime: new storage_proto.google.protobuf.Timestamp({
+    captureTime: new Timestamp({
       seconds: data.startTime.getTime() / 1000,
       nanos: (data.startTime.getTime() % 1000) * 1_000_000,
     }),
@@ -252,7 +251,7 @@ async function createTraceFile(
 
   console.log('Trace captured', trace);
 
-  const traceBytes = storage.Trace.encode(trace).finish();
+  const traceBytes = Trace.encode(trace).finish();
   const writer = (await blobStorage.writeable(BLOB_TRACE_NAME)).getWriter();
   try {
     await writer.write(traceBytes);
@@ -264,7 +263,7 @@ async function createTraceFile(
 function toFrameByFrameViewHierarchy({
   frameData,
   classname,
-}: view_capture.IExportedData): Map<bigint, storage_proto.motion.IViewNode> {
+}: view_capture.IExportedData): Map<bigint, motion.IViewNode> {
   function getClassName(classNameIndex: number) {
     return classname?.at(classNameIndex) ?? 'UNKNOWN';
   }
@@ -282,8 +281,8 @@ function toFrameByFrameViewHierarchy({
 function convertViewHierarchy(
   node: view_capture.IViewNode,
   getClassName: (classNameIndex: number) => string
-): storage_proto.motion.IViewNode {
-  return new storage_proto.motion.ViewNode({
+): motion.IViewNode {
+  return new motion.ViewNode({
     ...node,
     classname: node.classnameIndex ? getClassName(node.classnameIndex) : null,
     children: node.children?.map(child => convertViewHierarchy(child, getClassName)),

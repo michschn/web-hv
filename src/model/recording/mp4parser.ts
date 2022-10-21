@@ -44,7 +44,11 @@ export interface FrameMetadata {
   winscope1PtsMicros?: bigint;
 }
 
-export async function loadVideoMetadata(storage: BlobStorage): Promise<VideoMetadata> {
+export async function loadVideoMetadata(
+  storage: BlobStorage,
+  options?: { readFrameData: boolean }
+): Promise<VideoMetadata> {
+  const readFrameData = options?.readFrameData ?? false;
   let parseError: string | undefined;
   let fileInfo: FileInfo | undefined;
   let videoTrack: VideoTrack | undefined;
@@ -71,7 +75,9 @@ export async function loadVideoMetadata(storage: BlobStorage): Promise<VideoMeta
     // extract as all metadata stamples to parse winscope metadata.
     fileInfo.metadataTracks.forEach(({ id }) => parser.setExtractionOptions(id, 'metadata'));
 
-    parser.start();
+    if (readFrameData) {
+      parser.start();
+    }
   };
 
   const frames: FrameMetadata[] = [];
@@ -144,6 +150,8 @@ export async function loadVideoMetadata(storage: BlobStorage): Promise<VideoMeta
       frames[i].winscope1PtsMicros = winscope1PresentationTimes[i];
     }
   }
+
+  parser.stop();
 
   return {
     width: videoTrack.video.width,

@@ -22,6 +22,10 @@ import { InjectionToken } from '@angular/core';
 export interface BlobStorage {
   writeable(name: string): Promise<WritableStream<Uint8Array>>;
   readable(name: string): Promise<ReadableStream<Uint8Array>>;
+
+  read(name: string): Promise<Uint8Array>;
+
+  objectUrl(name: string): Promise<string>;
 }
 
 export type BlobStorageFactory = (recordingId: string) => Promise<BlobStorage>;
@@ -50,6 +54,16 @@ export class OpfsBlobStorage implements BlobStorage {
     const fileHandle = await this.rootDirectory.getFileHandle(name);
     // NodeJS stream types seem to interfere here - explicitly cast to the DOM stream type.
     return (await fileHandle.getFile()).stream() as unknown as ReadableStream<Uint8Array>;
+  }
+
+  async objectUrl(name: string): Promise<string> {
+    const fileHandle = await this.rootDirectory.getFileHandle(name);
+    return URL.createObjectURL(await fileHandle.getFile());
+  }
+
+  async read(name: string): Promise<Uint8Array> {
+    const fileHandle = await this.rootDirectory.getFileHandle(name);
+    return new Uint8Array(await (await fileHandle.getFile()).arrayBuffer());
   }
 }
 

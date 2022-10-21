@@ -16,23 +16,19 @@
 import { SeekableVideoSource } from './video-source';
 import { Disposable, Disposer } from '../../utils/disposer';
 import { Deferred } from '../../utils/utils';
+import { BlobStorage } from '../../storage/blob-storage';
+import { BLOB_SCREENRECORDING_NAME } from '../recording/constants';
+import { loadVideoMetadata } from '../recording/mp4parser';
 
 export class RecordedViewSource extends EventTarget implements SeekableVideoSource, Disposable {
   private _videoElement: HTMLVideoElement | null = null;
 
-  get width() {
-    return 1080;
-  }
-
-  get height() {
-    return 2400;
-  }
-
-  get duration() {
-    return this._videoElement?.duration ?? 0;
-  }
-
-  private constructor(recordingUrl: string) {
+  private constructor(
+    recordingUrl: string,
+    readonly width: number,
+    readonly height: number,
+    readonly duration: number
+  ) {
     super();
     const videoElement = document.createElement('video');
     videoElement.muted = true;
@@ -42,14 +38,14 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
     this._videoElement = videoElement;
   }
 
-  static async createVideoSource(recordingId: string): Promise<RecordedViewSource> {
-    const rootDir = await navigator.storage.getDirectory();
-    const recordingDir = await rootDir.getDirectoryHandle(recordingId);
-    const movieHandle = await recordingDir.getFileHandle('screenrecord.mp4');
-    const movieFile = await movieHandle.getFile();
-
-    const recordingUrl = URL.createObjectURL(movieFile);
-    return new RecordedViewSource(recordingUrl);
+  static async createVideoSource(storage: BlobStorage): Promise<RecordedViewSource> {
+    const { width, height, duration_nanos } = await loadVideoMetadata(storage);
+    return new RecordedViewSource(
+      await storage.objectUrl(BLOB_SCREENRECORDING_NAME),
+      width,
+      height,
+      Number(duration_nanos) / 1_000_000_000
+    );
   }
 
   drawCurrentFrame(ctx: CanvasRenderingContext2D): void {

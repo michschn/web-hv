@@ -17,31 +17,25 @@
 import { SeekableVideoSource } from '../video/video-source';
 import { Disposable } from '../../utils/disposer';
 import { RecordedViewSource } from '../video/recorded-view-source';
+import { BlobStorage } from '../../storage/blob-storage';
+import { BLOB_TRACE_NAME } from './constants';
+import { motion } from '../../proto/storage.js';
+import Trace = motion.Trace;
 
 export class Recording implements Disposable {
-  constructor(
-    public readonly duration: number,
-    public readonly frames: ReadonlyArray<Frame>,
-    public readonly videoSource: SeekableVideoSource
-  ) {}
+  constructor(public readonly trace: Trace, public readonly videoSource: SeekableVideoSource) {}
 
-  static load(recordingId: string): Promise<Recording> {
-    return loadRecording(recordingId);
+  static async load(storage: BlobStorage): Promise<Recording> {
+    const traceBytes = await storage.read(BLOB_TRACE_NAME);
+
+    const trace = motion.Trace.decode(traceBytes);
+
+    const videoSource = await RecordedViewSource.createVideoSource(storage);
+
+    return new Recording(trace, videoSource);
   }
 
-  dispose(): void {}
-}
-
-export interface Frame {
-  readonly frameIndex: number;
-  readonly frameTime: number;
-}
-
-async function loadRecording(recordingId: string): Promise<Recording> {
-  const duration = 0;
-  const frames: Frame[] = [];
-
-  const videoSource = await RecordedViewSource.createVideoSource(recordingId);
-
-  return new Recording(duration, frames, videoSource);
+  dispose(): void {
+    this.videoSource.dispose();
+  }
 }

@@ -21,7 +21,7 @@ import { Disposable } from '../../utils/disposer';
  *
  * See `VideoSourceEventMap` for events this object notifies about.
  */
-export interface VideoSource extends EventTarget,Disposable{
+export interface VideoSource extends EventTarget, Disposable {
   /* Intrinsic width in pixels. */
   readonly width: number;
 

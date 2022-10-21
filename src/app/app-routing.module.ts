@@ -18,7 +18,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes, UrlHandlingStrategy, UrlTree } from '@angular/router';
 import { RecordingViewerComponent } from './recording-viewer/recording-viewer.component';
 import { MotionViewerComponent } from './motion-viewer/motion-viewer.component';
-import { HashLocationStrategy, LocationStrategy, PlatformLocation, } from '@angular/common';
+import { HashLocationStrategy, LocationStrategy, PlatformLocation } from '@angular/common';
 
 const routes: Routes = [
   {
@@ -33,12 +33,11 @@ const routes: Routes = [
   {
     path: 'recording',
     component: RecordingViewerComponent,
-
   },
 ];
 @NgModule({
   exports: [RouterModule],
-  imports: [RouterModule.forRoot(routes, )],
+  imports: [RouterModule.forRoot(routes)],
   providers: [
     {
       provide: LocationStrategy,
@@ -52,8 +51,8 @@ const routes: Routes = [
       useFactory: (platformLocation: PlatformLocation) =>
         new PreserveConnectionParametersStrategy(platformLocation),
       deps: [PlatformLocation],
-    }
-    ],
+    },
+  ],
 })
 export class AppRoutingModule {}
 

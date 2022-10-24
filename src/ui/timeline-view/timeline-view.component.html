@@ -20,6 +20,7 @@
     id="handle"
     cdkDrag
     [cdkDragConstrainPosition]="computeTimeHandleSnap"
+    [cdkDragFreeDragPosition]="timeHandlePosition"
     (cdkDragStarted)="onDragTimeHandleStart($event)"
     (cdkDragReleased)="onDragTimeHandleEnd($event)"
   ></div>

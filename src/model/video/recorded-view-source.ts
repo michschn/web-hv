@@ -96,7 +96,12 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
     }
   }
 
+  get currentTime() {
+     return  this._videoElement?.currentTime ?? 0;
+  }
+
   _currentSeekPromise: Deferred<boolean> | null = null;
+
 
   async seek(time: number): Promise<boolean> {
     if (!this._videoElement) return false;

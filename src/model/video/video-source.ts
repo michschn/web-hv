@@ -68,6 +68,8 @@ export interface SeekableVideoSource extends VideoSource {
    * seek, or stopping playback.
    */
   seek(time: number): Promise<boolean>;
+
+  readonly currentTime : number;
 }
 
 declare global {

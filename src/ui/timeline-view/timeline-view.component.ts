@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AfterViewInit, Component, ElementRef, Input, NgZone, ViewChild, ViewContainerRef, } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, NgZone, ViewChild, ViewContainerRef, } from '@angular/core';
 import { checkNotNull } from '../../utils/preconditions';
 import { Recording } from '../../model/recording/recording';
 import { CdkDragRelease, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
@@ -25,7 +25,7 @@ import { SeekableVideoSource } from '../../model/video/video-source';
   templateUrl: './timeline-view.component.html',
   styleUrls: ['./timeline-view.component.scss'],
 })
-export class TimelineViewComponent implements AfterViewInit {
+export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
   constructor(private readonly viewRef: ViewContainerRef, private zone: NgZone) {}
 
   private _observer = new ResizeObserver(() => {
@@ -57,6 +57,52 @@ export class TimelineViewComponent implements AfterViewInit {
     this._updateCanvasSize();
   }
 
+  timeHandlePosition = { x: 0, y: 0 };
+
+  _isPlaying = false;
+
+  ngAfterViewChecked() {
+    const isPlaying = this.videoSource?.state === 'play';
+    if (isPlaying == this._isPlaying) return;
+    console.log('play state changes');
+
+    this._isPlaying = isPlaying;
+    if (isPlaying) {
+      const self = this;
+      function updatePlayHead() {
+        console.warn(`updatePlayHead`);
+
+        const canvas = self._checkedCanvas;
+        const boundingClientRect = canvas.getBoundingClientRect();
+
+        if (!self._recording || !self.videoSource) return;
+
+        const currentTime = self.videoSource.currentTime;
+
+        const frames = self._recording.trace.frames;
+
+        const deltas = frames.map(frame => Math.abs(frame.videoTimeSeconds! - currentTime));
+        const closest = Math.min(...deltas);
+        const frameIndex = deltas.indexOf(closest);
+
+        console.log(`current frame`, frameIndex);
+        if (frameIndex >= 0) {
+          const range = canvas.width;
+
+          self.timeHandlePosition = {
+            x: (range / frames.length) * frameIndex,
+            y: 0,
+          };
+        }
+        if (!self._isPlaying) return;
+
+        requestAnimationFrame(updatePlayHead);
+      }
+
+      requestAnimationFrame(updatePlayHead);
+    }
+  }
+
   private _wasPlayingBeforeDrag = false;
   onDragTimeHandleStart(event: CdkDragStart) {
     this._wasPlayingBeforeDrag = this.videoSource?.state == 'play';
@@ -82,7 +128,7 @@ export class TimelineViewComponent implements AfterViewInit {
     const x = Math.min(Math.max(0, pos.x - boundingClientRect.x), range);
 
     const progress = x / range;
-    const frame = Math.round(frames.length * progress);
+    const frame = Math.round((frames.length - 1) * progress);
 
     const videoTimeSeconds = frames[frame].videoTimeSeconds;
     if (this.videoSource && videoTimeSeconds) {

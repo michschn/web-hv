@@ -32,6 +32,7 @@ import { RecorderService } from '../model/recording/recorder.service';
 import { RecordingViewerComponent } from './recording-viewer/recording-viewer.component';
 import { AppRoutingModule } from './app-routing.module';
 import { BLOB_STORAGE_FACTORY, OpfsBlobStorage } from '../storage/blob-storage';
+import { Preferences } from '../storage/preferences';
 
 @NgModule({
   declarations: [AppComponent, MotionViewerComponent, RecordingViewerComponent],
@@ -58,6 +59,7 @@ import { BLOB_STORAGE_FACTORY, OpfsBlobStorage } from '../storage/blob-storage';
     },
     RecorderService,
     ProgressTracker,
+    Preferences,
   ],
   bootstrap: [AppComponent],
 })

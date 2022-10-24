@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,31 +14,10 @@
  * limitations under the License.
  */
 
-:host {
-  display: flex;
-  flex-direction: column;
-}
+import { Preferences } from './preferences';
 
-.timeline {
-  position: relative;
-  display: flex;
-  flex-grow: 1;
-}
-
-canvas {
-  position: absolute;
-}
-
-#handle {
-  position: absolute;
-  width: 1px;
-  background-color: red;
-  background-clip: padding-box;
-  border: 5px solid transparent;
-  border-bottom: 5px solid red;
-  top: 0;
-  bottom: 20px;
-  margin-left: -5px;
-}
-
-
+describe('Preferences', () => {
+  it('should create an instance', () => {
+    expect(new Preferences()).toBeTruthy();
+  });
+});

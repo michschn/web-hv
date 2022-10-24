@@ -42,6 +42,10 @@ export class LiveViewSource extends EventTarget implements VideoSource, Disposab
     return this._height ?? 0;
   }
 
+  get state() {
+    return this._playState ? 'play' : 'stop';
+  }
+
   constructor(private readonly device: AdbDevice) {
     super();
   }

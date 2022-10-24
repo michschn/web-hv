@@ -93,10 +93,6 @@ export class VideoViewComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    console.log(
-      `clientHeight: ${this._container.nativeElement.clientHeight}, clientWidth: ${this._container.nativeElement.clientWidth} width ${this._source.width}, height ${this._source.height}`
-    );
-
     // Determine the scaling ratio for both, witdth and height, to fit the video into the container.
     const widthScale = this._container.nativeElement.clientWidth / this._source.width;
     const heightScale = this._container.nativeElement.clientHeight / this._source.height;

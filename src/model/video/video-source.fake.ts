@@ -87,4 +87,9 @@ export class FakeVideoSource extends EventTarget implements SeekableVideoSource 
   }
 
   dispose(): void {}
+
+  loop = false;
+  playbackRate = 1;
+  readonly seekable = true;
+  readonly state = 'play';
 }

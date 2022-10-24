@@ -20,10 +20,17 @@ import { TimelineViewComponent } from './timeline-view/timeline-view.component';
 import { OscilloscopeConfigViewComponent } from './oscilloscope-config-view/oscilloscope-config-view.component';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { CommonModule } from '@angular/common';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { VideoControlsComponent } from './video-controls/video-controls.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
-  declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent],
-  imports: [MatExpansionModule, CommonModule],
+  declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent, VideoControlsComponent],
+  imports: [MatExpansionModule, CommonModule, DragDropModule, MatButtonModule, MatIconModule, MatSliderModule, MatSlideToggleModule, MatMenuModule],
   exports: [VideoViewComponent, OscilloscopeConfigViewComponent, TimelineViewComponent],
 })
 export class UiModule {}

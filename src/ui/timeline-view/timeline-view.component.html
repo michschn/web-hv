@@ -1,4 +1,4 @@
-⌛timeline⌛<!--
+<!--
   ~ Copyright 2022 Google LLC
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,3 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
+<div class="timeline">
+  <canvas #canvas></canvas>
+  <div
+    id="handle"
+    cdkDrag
+    [cdkDragConstrainPosition]="computeTimeHandleSnap"
+    (cdkDragStarted)="onDragTimeHandleStart($event)"
+    (cdkDragReleased)="onDragTimeHandleEnd($event)"
+  ></div>
+</div>
+
+<ui-video-controls [videoSource]="videoSource"></ui-video-controls>

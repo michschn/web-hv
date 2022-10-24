@@ -19,8 +19,10 @@ import { Deferred } from '../../utils/utils';
 import { BlobStorage } from '../../storage/blob-storage';
 import { BLOB_SCREENRECORDING_NAME } from '../recording/constants';
 import { loadVideoMetadata } from '../recording/mp4parser';
+import { checkNotNull } from '../../utils/preconditions';
 
 export class RecordedViewSource extends EventTarget implements SeekableVideoSource, Disposable {
+  readonly seekable = true;
   private _videoElement: HTMLVideoElement | null = null;
 
   private constructor(
@@ -33,8 +35,6 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
     const videoElement = document.createElement('video');
     videoElement.muted = true;
     videoElement.src = recordingUrl;
-    videoElement.loop = true;
-
     this._videoElement = videoElement;
   }
 
@@ -51,6 +51,31 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
   drawCurrentFrame(ctx: CanvasRenderingContext2D): void {
     if (!this._videoElement) return;
     ctx.drawImage(this._videoElement, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+
+  get loop(): boolean {
+    return this._videoElement?.loop ?? false;
+  }
+
+  set loop(value: boolean) {
+    checkNotNull(this._videoElement).loop = value;
+  }
+
+  get playbackRate(): number {
+    return this._videoElement?.playbackRate ?? 1;
+  }
+
+  set playbackRate(value: number) {
+    checkNotNull(this._videoElement).playbackRate = value;
+  }
+
+  get state() {
+    if (!this._videoElement) return 'stop';
+    if (this._currentSeekPromise) return 'seek';
+    if (this._videoElement.paused) return 'stop';
+    if (this._videoElement.ended) return 'stop';
+
+    return 'play';
   }
 
   async play(): Promise<void> {
@@ -72,6 +97,7 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
   }
 
   _currentSeekPromise: Deferred<boolean> | null = null;
+
   async seek(time: number): Promise<boolean> {
     if (!this._videoElement) return false;
 
@@ -84,6 +110,7 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
 
     const seekSetup = new Disposer();
     seekSetup.addListener(this._videoElement, 'seeked', () => currentSeekPromise.resolve(true));
+    this._videoElement.currentTime = time;
 
     try {
       return await currentSeekPromise;

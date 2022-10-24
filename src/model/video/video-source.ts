@@ -16,6 +16,8 @@
 
 import { Disposable } from '../../utils/disposer';
 
+export type VideoSourceState = 'stop' | 'play' | 'seek';
+
 /**
  * A playable video that can be drawn on a `Canvas`.
  *
@@ -27,6 +29,8 @@ export interface VideoSource extends EventTarget, Disposable {
 
   /* Intrinsic height in pixels. */
   readonly height: number;
+
+  readonly state: VideoSourceState;
 
   /** Starts playing the video. */
   play(): Promise<void>;
@@ -44,6 +48,12 @@ interface VideoSourceEventMap {
 
 /** A `VideoSource` randomly seekable to a specified time */
 export interface SeekableVideoSource extends VideoSource {
+  readonly seekable: true;
+
+  loop: boolean;
+
+  playbackRate: number;
+
   /**
    * A read-only double-precision floating-point value indicating the total duration of the video
    * in second.

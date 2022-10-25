@@ -14,3 +14,26 @@
  * limitations under the License.
  */
 
+:host {
+  padding: 8px 0;
+}
+:host:hover {
+  background-color: rgba(0,0,0,.05);
+}
+
+
+.label {
+  background-color: #E1E1E1 !important;
+  color: #212121;
+  border-radius: 16px;
+  margin-top: 72px;
+  display: inline-block;
+  padding: 8px;
+  position: relative;
+}
+
+.graph-container {
+  position: absolute;
+  height: 64px;
+  width: 100%;
+}

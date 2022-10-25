@@ -15,9 +15,45 @@
  */
 
 import { VisualTimeline } from './visual-timeline';
+import { Timeline } from '../recording/timeline';
 
 describe('VisualTimeline', () => {
-  it('should create an instance', () => {
-    expect(new VisualTimeline()).toBeTruthy();
+  const timeline = new Timeline([0, 0.5, 1, 1.5], 2);
+
+  describe('translation functions', () => {
+    let subject: VisualTimeline;
+    beforeEach(() => {
+      subject = new VisualTimeline(10, timeline);
+    });
+
+    it('px to time interpolates', () => {
+      expect(subject.pxToTime(0)).toBe(0);
+      expect(subject.pxToTime(1.25)).toBe(0.25);
+      expect(subject.pxToTime(2.5)).toBe(0.5);
+    });
+
+    it('px to frame rounds to frame', () => {
+      expect(subject.pxToFrame(0)).toBe(0);
+      expect(subject.pxToFrame(0.1)).toBe(0);
+      expect(subject.pxToFrame(2.4)).toBe(0);
+      expect(subject.pxToFrame(2.5)).toBe(1);
+      expect(subject.pxToFrame(2.6)).toBe(1);
+      // ...
+      expect(subject.pxToFrame(9.9)).toBe(3);
+      expect(subject.pxToFrame(10)).toBe(Number.POSITIVE_INFINITY);
+    });
+
+    it('time to px interpolates', () => {
+      expect(subject.timeToPx(0)).toBe(0);
+      expect(subject.timeToPx(0.25)).toBe(1.25);
+      expect(subject.timeToPx(0.5)).toBe(2.5);
+    });
+
+    it('frame to px returns frame begin position', () => {
+      expect(subject.frameToPx(0)).toBe(0);
+      expect(subject.frameToPx(1)).toBe(2.5);
+      expect(subject.frameToPx(2)).toBe(5);
+      expect(subject.frameToPx(3)).toBe(7.5);
+    });
   });
 });

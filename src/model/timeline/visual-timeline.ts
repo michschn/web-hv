@@ -14,5 +14,57 @@
  * limitations under the License.
  */
 
-export class VisualTimeline {
+import { Timeline } from '../recording/timeline';
+
+/** Translates pixel values to frames / video timestamps, and vice-versa. */
+export class VisualTimeline extends EventTarget {
+  constructor(width: number, public readonly timeline: Timeline) {
+    super();
+    this._width = width;
+  }
+
+  private _width: number;
+
+  get width(): number {
+    return this._width;
+  }
+
+  /**
+   * Pixel-width of the interaction area.
+   *
+   * `0`px ≙ `0`s, while `width`px ≙ the duration.
+   */
+  set width(value: number) {
+    if (value == this._width) return;
+    this._width = value;
+    this.dispatchEvent(new Event('timeline-changed'));
+  }
+
+  /** Pixel-value that marks the given time. */
+  timeToPx(timeSeconds: number): number {
+    if (timeSeconds < 0) return Number.NEGATIVE_INFINITY;
+    const duration = this.timeline.duration;
+    if (timeSeconds > duration) return Number.POSITIVE_INFINITY;
+
+    return this.width * (timeSeconds / duration);
+  }
+
+  /** Pixel-value that marks the beginning of the given frame. */
+  frameToPx(frame: number): number {
+    return this.timeToPx(this.timeline.timeToFrame(frame));
+  }
+
+  /** Video-time associated with the given pixel value. */
+  pxToTime(px: number): number {
+    if (px < 0) return Number.NEGATIVE_INFINITY;
+    const width = this.width;
+    if (px > width) return Number.POSITIVE_INFINITY;
+
+    return this.timeline.duration * (px / width);
+  }
+
+  /** Frame number associated with the given pixel value. */
+  pxToFrame(px: number): number {
+    return this.timeline.frameToTime(this.pxToTime(px));
+  }
 }

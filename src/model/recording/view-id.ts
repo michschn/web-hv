@@ -96,7 +96,7 @@ class ViewIdImpl implements ViewId {
       // whole string;
       const simpleClassName = this.classname.substring(this.classname.lastIndexOf('.') + 1);
       this._cachedLabel = this.resourceId
-        ? `${simpleClassName}@id/${this.resourceId}`
+        ? `${simpleClassName}@${this.resourceId}`
         : simpleClassName;
     }
     return this._cachedLabel;

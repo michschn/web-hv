@@ -25,7 +25,9 @@
     (cdkDragReleased)="onDragTimeHandleEnd($event)"
   ></div>
   <cdk-virtual-scroll-viewport appendOnly itemSize="50" class="graph-viewport">
-    <ui-graph *cdkVirtualFor="let graph of viewConfig.graphs" [graphConfig]="graph"></ui-graph>
+    <ui-graph *cdkVirtualFor="let graph of viewConfig.graphs"
+              [graphConfig]="graph"
+    [timeline]="visualTimeline" ></ui-graph>
   </cdk-virtual-scroll-viewport>
 </div>
 

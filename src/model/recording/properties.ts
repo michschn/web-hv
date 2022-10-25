@@ -118,6 +118,8 @@ export function transposeTrace(trace: Trace, viewIdFactory: ViewIdFactory): Prop
       selector,
       series: collectedData.builder.build(),
     };
+
+    properties.push(viewProperty);
   }
 
   return new Properties(properties);

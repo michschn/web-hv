@@ -33,7 +33,7 @@ import Frame = motion.Frame;
 import VideoMetadata = motion.VideoMetadata;
 import Trace = motion.Trace;
 
-const POLL_DELAY_MS = 500;
+const POLL_DELAY_MS = 5000;
 
 const RECORDER_SERVICE_LOCK = 'recorder.service.ts.lifecycle';
 

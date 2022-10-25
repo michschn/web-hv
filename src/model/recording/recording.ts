@@ -41,7 +41,7 @@ export class Recording implements Disposable {
 
     const duration =
       Long.fromValue(checkNotNull(trace.duration?.seconds)).toNumber() +
-      (trace.duration?.nanos ?? 0 / 1_000_000_000);
+      (trace.duration?.nanos ?? 0) / 1_000_000_000;
 
     const timeline = new Timeline(
       trace.frames?.map(frame => checkNotNull(frame.videoTimeSeconds)) ?? [],

@@ -28,6 +28,8 @@ export interface FrameSeries<T> extends Iterable<T | undefined> {
   readonly min?: T;
   /** Maximal value of the time series, `undefined` for non-comparable series values. */
   readonly max?: T;
+
+  hasChangesInRange(start: number, end: number): boolean;
 }
 
 type MinMaxFn<T> = (values: (T | undefined)[]) => T | undefined;
@@ -131,6 +133,9 @@ class ConstantValueFrameSeries<T> implements FrameSeries<T> {
       yield this.value;
     }
   }
+  hasChangesInRange(start: number, end: number) {
+    return false;
+  }
 }
 
 /** This implementation coalesces subsequent equal values to save memory. */
@@ -175,6 +180,11 @@ class CoalescedFrameSeries<T> implements FrameSeries<T> {
 
   get testOnlyActualValueCount() {
     return this._data.length;
+  }
+
+  hasChangesInRange(start: number, end: number) {
+    // TODO
+    return true;
   }
 }
 

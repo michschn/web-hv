@@ -39,7 +39,9 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
   }
 
   static async createVideoSource(storage: BlobStorage): Promise<RecordedViewSource> {
-    const { width, height, duration_nanos } = await loadVideoMetadata(storage);
+    const { width, height, duration_nanos } = await loadVideoMetadata(storage, {
+      readFrameData: true,
+    });
     return new RecordedViewSource(
       await storage.objectUrl(BLOB_SCREENRECORDING_NAME),
       width,
@@ -97,11 +99,10 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
   }
 
   get currentTime() {
-     return  this._videoElement?.currentTime ?? 0;
+    return this._videoElement?.currentTime ?? 0;
   }
 
   _currentSeekPromise: Deferred<boolean> | null = null;
-
 
   async seek(time: number): Promise<boolean> {
     if (!this._videoElement) return false;

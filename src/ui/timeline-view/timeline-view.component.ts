@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, NgZone, ViewChild, ViewContainerRef, } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, NgZone, QueryList, ViewChild, ViewChildren, ViewContainerRef, } from '@angular/core';
 import { checkNotNull } from '../../utils/preconditions';
 import { Recording } from '../../model/recording/recording';
 import { CdkDragRelease, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { SeekableVideoSource } from '../../model/video/video-source';
-import { motion } from '../../proto/storage';
 import { ViewConfig } from '../../model/view-config/view-config';
+import { GraphComponent } from './graph/graph.component';
+import { VisualTimeline } from '../../model/timeline/visual-timeline';
 
 @Component({
   selector: 'ui-timeline-view',
@@ -36,12 +37,10 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     });
   });
 
-  @ViewChild('canvas', { read: ElementRef })
-  canvas?: ElementRef<HTMLCanvasElement>;
+  @ViewChildren(GraphComponent) graphs!: QueryList<GraphComponent>;
 
-  private get _checkedCanvas() {
-    return checkNotNull(this.canvas?.nativeElement);
-  }
+  @ViewChild('canvas', { read: ElementRef })
+  canvas!: ElementRef<HTMLCanvasElement>;
 
   private _recording?: Recording;
   videoSource?: SeekableVideoSource;
@@ -51,6 +50,9 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     if (value === this.recording) return;
     this._recording = value;
     this.videoSource = value?.videoSource.seekable ? value?.videoSource : undefined;
+    this.visualTimeline = value?.timeline
+      ? new VisualTimeline(this.canvas.nativeElement.width, value.timeline)
+      : undefined;
 
     this._scheduleRender();
   }
@@ -58,8 +60,14 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
   @Input()
   viewConfig!: ViewConfig;
 
+  visualTimeline?: VisualTimeline;
+
   ngAfterViewInit() {
     this._observer.observe(this.viewRef.element.nativeElement);
+    this.graphs.changes.subscribe(r => {
+      const width = this.canvas.nativeElement.width;
+      this.graphs.forEach(graph => graph.updateCanvasSize(width));
+    });
     this._updateCanvasSize();
   }
 
@@ -76,27 +84,15 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     if (isPlaying) {
       const self = this;
       function updatePlayHead() {
-        const canvas = self._checkedCanvas;
-        const boundingClientRect = canvas.getBoundingClientRect();
+        if (!self.visualTimeline || !self.videoSource) return;
 
-        if (!self._recording || !self.videoSource) return;
-
-        const currentTime = self.videoSource.currentTime;
-
-        const timeline = self._recording.timeline;
-        const currentFrame = timeline.getFrameFromTime(currentTime);
-
-        if (isFinite(currentTime)) {
-          const range = canvas.width;
-
-          self.timeHandlePosition = {
-            x: (range / frames.length) * currentFrame,
-            y: 0,
-          };
+        const playheadX = self.visualTimeline.timeToPx(self.videoSource.currentTime);
+        if (isFinite(playheadX)) {
+          self.timeHandlePosition = { x: playheadX, y: 0 };
         }
-        if (!self._isPlaying) return;
-
-        requestAnimationFrame(updatePlayHead);
+        if (self._isPlaying) {
+          requestAnimationFrame(updatePlayHead);
+        }
       }
 
       requestAnimationFrame(updatePlayHead);
@@ -117,26 +113,20 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     dimensions: ClientRect,
     pickupPositionInElement: Point
   ) => {
-    const canvas = this._checkedCanvas;
-    const boundingClientRect = canvas.getBoundingClientRect();
+    if (!this.visualTimeline) return { x: 0, y: 0 };
 
-    if (!this._recording) return { x: 0, y: 0 };
-    const frames = this._recording.timeline;
+    const canvasBounds = this.canvas.nativeElement.getBoundingClientRect();
 
-    const range = canvas.width;
+    let frame = this.visualTimeline.pxToFrame(pos.x - canvasBounds.x);
+    if (frame === Number.NEGATIVE_INFINITY) frame = 0;
+    else if (frame === Number.POSITIVE_INFINITY) frame = this.visualTimeline.timeline.frameCount;
 
-    const x = Math.min(Math.max(0, pos.x - boundingClientRect.x), range);
-
-    const progress = x / range;
-    const frameNumber = Math.round(frames.frameCount * progress);
-
-    const videoTimeSeconds = frames.getTimeFromFrame(frameNumber);
-    if (this.videoSource && videoTimeSeconds) {
-      this.videoSource.seek(videoTimeSeconds);
+    if (this.videoSource) {
+      this.videoSource.seek(this.visualTimeline.timeline.timeToFrame(frame));
     }
 
     return {
-      x: boundingClientRect.x + (range / frames.frameCount) * frameNumber - 5,
+      x: canvasBounds.x + this.visualTimeline.frameToPx(frame) - 5,
       y: dimensions.y,
     };
   };
@@ -148,8 +138,6 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
   }
 
   private _updateCanvasSize() {
-    if (!this.canvas) return;
-
     const canvasElement = this.canvas.nativeElement;
     const parentElement = checkNotNull(this.canvas.nativeElement.parentElement);
     const height = parentElement.clientHeight;
@@ -160,7 +148,12 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
 
     canvasElement.width = width;
     canvasElement.height = height;
+    if (this.visualTimeline) {
+      this.visualTimeline.width = width;
+    }
     this._render();
+
+    this.graphs.forEach(graph => graph.updateCanvasSize(width));
   }
 
   private _scheduledRender?: number;
@@ -174,8 +167,6 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
   }
 
   private _render() {
-    if (!this.canvas) return;
-
     const ctx = checkNotNull(this.canvas.nativeElement.getContext('2d'));
     const { width, height } = ctx.canvas;
 
@@ -242,47 +233,3 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     ctx.stroke();
   }
 }
-
-interface ViewData {
-  label: string;
-  min: number;
-  max: number;
-  timeseries: number[];
-}
-//
-// function computeGraphs(recording: Recording | undefined) {
-//   if (!recording) return [];
-//
-//   const flatMap = new Map<string, ViewData>();
-//
-//
-//   // const frames = recording.trace.frames;
-//   // for (let i = 0; i < frames.length; i++) {
-//   //   const frame = frames[i];
-//   //
-//   //   function collectSamples(node: IViewNode | undefined | null) {
-//   //     if (!node )return;
-//   //
-//   //     const name = `${node.classname}@${node.hashcode}`;
-//   //     let entry = flatMap.get(name);
-//   //     if (!entry) {
-//   //       entry =  {
-//   //         label
-//   //
-//   //       }
-//   //     }
-//   //
-//   //
-//   //   }
-//   //
-//   //   collectSamples(frame.viewHierarchy);
-//   //
-//   //
-//   //
-//   // }
-//   //
-//   //
-//   //
-//   //   throw new Error('Function not implemented.');
-// }
-//

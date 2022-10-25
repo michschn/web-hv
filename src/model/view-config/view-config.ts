@@ -21,5 +21,6 @@ export interface ViewConfig {
 }
 
 export interface GraphConfig {
+  color: string;
   property: Property<number>;
 }

@@ -20,6 +20,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RecorderService } from '../../model/recording/recorder.service';
 import { ProgressTracker } from '../../utils/progress';
 import { ViewConfig } from '../../model/view-config/view-config';
+import { Property } from '../../model/recording/properties';
 
 @Component({
   selector: 'app-recording-viewer',
@@ -33,7 +34,7 @@ export class RecordingViewerComponent implements OnInit, OnDestroy {
     private _recordingService: RecorderService,
     private _progressTracker: ProgressTracker
   ) {
-    this.viewConfig = { graphs: []}
+    this.viewConfig = { graphs: [] };
   }
 
   recording?: Recording;
@@ -50,6 +51,15 @@ export class RecordingViewerComponent implements OnInit, OnDestroy {
       if (recordingId == this._route.snapshot.params['id']) {
         this.recording?.dispose();
         this.recording = recording;
+        this.viewConfig.graphs =
+          recording?.properties?.properties
+            ?.filter(property => property.series.hasChangesInRange(0, 1))
+            ?.filter(property => property.label.indexOf('Brightness') != -1)
+            ?.slice(0, 10)
+            ?.map((property, index) => ({
+              color: PROBE_COLORS[index % PROBE_COLORS.length],
+              property: property as Property<number>,
+            })) ?? [];
       } else {
         recording.dispose();
       }
@@ -60,3 +70,15 @@ export class RecordingViewerComponent implements OnInit, OnDestroy {
     this.recording?.dispose();
   }
 }
+
+const PROBE_COLORS = [
+  '#E51C23',
+  '#9C27B0',
+  '#5677FC',
+  '#00BCD4',
+  '#259B24',
+  '#CDDC39',
+  '#FFC107',
+  '#795548',
+  '#737373',
+];

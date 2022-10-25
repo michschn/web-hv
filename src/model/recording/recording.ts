@@ -20,22 +20,41 @@ import { RecordedViewSource } from '../video/recorded-view-source';
 import { BlobStorage } from '../../storage/blob-storage';
 import { BLOB_TRACE_NAME } from './constants';
 import { motion } from '../../proto/storage.js';
-import Trace = motion.Trace;
+import { Properties, transposeTrace } from './properties';
+import { ViewIdFactory } from './view-id';
+import { Timeline } from './timeline';
+import { checkNotNull } from '../../utils/preconditions';
+import Long from 'long';
 
 export class Recording implements Disposable {
-  constructor(public readonly trace: Trace, public readonly videoSource: SeekableVideoSource) {}
+  constructor(
+    readonly viewIdFactory: ViewIdFactory,
+    readonly properties: Properties,
+    readonly timeline: Timeline,
+    public readonly videoSource: SeekableVideoSource
+  ) {}
 
   static async load(storage: BlobStorage): Promise<Recording> {
-    const traceBytes = await storage.read(BLOB_TRACE_NAME);
+    const trace = motion.Trace.decode(await storage.read(BLOB_TRACE_NAME));
 
-    const trace = motion.Trace.decode(traceBytes);
+    const viewIdFactory = new ViewIdFactory();
 
+    const duration =
+      Long.fromValue(checkNotNull(trace.duration?.seconds)).toNumber() +
+      (trace.duration?.nanos ?? 0 / 1_000_000_000);
+
+    const timeline = new Timeline(
+      trace.frames?.map(frame => checkNotNull(frame.videoTimeSeconds)) ?? [],
+      duration
+    );
+    const properties = transposeTrace(trace, viewIdFactory);
     const videoSource = await RecordedViewSource.createVideoSource(storage);
 
-    return new Recording(trace, videoSource);
+    return new Recording(viewIdFactory, properties, timeline, videoSource);
   }
 
   dispose(): void {
     this.videoSource.dispose();
+    this.viewIdFactory.dispose();
   }
 }

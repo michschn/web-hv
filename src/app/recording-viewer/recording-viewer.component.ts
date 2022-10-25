@@ -19,6 +19,7 @@ import { Recording } from '../../model/recording/recording';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RecorderService } from '../../model/recording/recorder.service';
 import { ProgressTracker } from '../../utils/progress';
+import { ViewConfig } from '../../model/view-config/view-config';
 
 @Component({
   selector: 'app-recording-viewer',
@@ -31,9 +32,13 @@ export class RecordingViewerComponent implements OnInit, OnDestroy {
     private _router: Router,
     private _recordingService: RecorderService,
     private _progressTracker: ProgressTracker
-  ) {}
+  ) {
+    this.viewConfig = { graphs: []}
+  }
 
   recording?: Recording;
+
+  viewConfig: ViewConfig;
 
   ngOnInit(): void {
     this._route.params.subscribe(async routeParams => {

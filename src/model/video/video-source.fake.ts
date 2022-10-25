@@ -41,6 +41,9 @@ export class FakeVideoSource extends EventTarget implements SeekableVideoSource 
     return this._currentFrame;
   }
 
+  readonly currentTime: number = 0;
+
+
   drawCurrentFrame(ctx: CanvasRenderingContext2D): void {
     const { width, height } = ctx.canvas;
 

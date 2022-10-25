@@ -27,10 +27,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatMenuModule } from '@angular/material/menu';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { GraphComponent } from './timeline-view/graph/graph.component';
 
 @NgModule({
-  declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent, VideoControlsComponent],
-  imports: [MatExpansionModule, CommonModule, DragDropModule, MatButtonModule, MatIconModule, MatSliderModule, MatSlideToggleModule, MatMenuModule],
+  declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent, VideoControlsComponent, GraphComponent],
+  imports: [MatExpansionModule, CommonModule, DragDropModule, MatButtonModule, MatIconModule, MatSliderModule, MatSlideToggleModule, MatMenuModule, ScrollingModule],
   exports: [VideoViewComponent, OscilloscopeConfigViewComponent, TimelineViewComponent],
 })
 export class UiModule {}

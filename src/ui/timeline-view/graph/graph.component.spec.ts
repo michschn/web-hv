@@ -16,20 +16,20 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TimelineViewComponent } from './timeline-view.component';
+import { GraphComponent } from './graph.component';
 
-describe('TimelineViewComponent', () => {
-  let component: TimelineViewComponent;
-  let fixture: ComponentFixture<TimelineViewComponent>;
+describe('GraphComponent', () => {
+  let component: GraphComponent;
+  let fixture: ComponentFixture<GraphComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TimelineViewComponent],
-    }).compileComponents();
+      declarations: [ GraphComponent ]
+    })
+    .compileComponents();
 
-    fixture = TestBed.createComponent(TimelineViewComponent);
+    fixture = TestBed.createComponent(GraphComponent);
     component = fixture.componentInstance;
-    component.viewConfig = { graphs: [] };
     fixture.detectChanges();
   });
 

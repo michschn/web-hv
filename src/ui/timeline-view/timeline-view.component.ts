@@ -19,6 +19,8 @@ import { checkNotNull } from '../../utils/preconditions';
 import { Recording } from '../../model/recording/recording';
 import { CdkDragRelease, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
 import { SeekableVideoSource } from '../../model/video/video-source';
+import { motion } from '../../proto/storage';
+import { ViewConfig } from '../../model/view-config/view-config';
 
 @Component({
   selector: 'ui-timeline-view',
@@ -49,8 +51,12 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     if (value === this.recording) return;
     this._recording = value;
     this.videoSource = value?.videoSource.seekable ? value?.videoSource : undefined;
+
     this._scheduleRender();
   }
+
+  @Input()
+  viewConfig!: ViewConfig;
 
   ngAfterViewInit() {
     this._observer.observe(this.viewRef.element.nativeElement);
@@ -70,8 +76,6 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     if (isPlaying) {
       const self = this;
       function updatePlayHead() {
-        console.warn(`updatePlayHead`);
-
         const canvas = self._checkedCanvas;
         const boundingClientRect = canvas.getBoundingClientRect();
 
@@ -79,18 +83,14 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
 
         const currentTime = self.videoSource.currentTime;
 
-        const frames = self._recording.trace.frames;
+        const timeline = self._recording.timeline;
+        const currentFrame = timeline.getFrameFromTime(currentTime);
 
-        const deltas = frames.map(frame => Math.abs(frame.videoTimeSeconds! - currentTime));
-        const closest = Math.min(...deltas);
-        const frameIndex = deltas.indexOf(closest);
-
-        console.log(`current frame`, frameIndex);
-        if (frameIndex >= 0) {
+        if (isFinite(currentTime)) {
           const range = canvas.width;
 
           self.timeHandlePosition = {
-            x: (range / frames.length) * frameIndex,
+            x: (range / frames.length) * currentFrame,
             y: 0,
           };
         }
@@ -121,21 +121,24 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     const boundingClientRect = canvas.getBoundingClientRect();
 
     if (!this._recording) return { x: 0, y: 0 };
-    const frames = this._recording.trace.frames;
+    const frames = this._recording.timeline;
 
     const range = canvas.width;
 
     const x = Math.min(Math.max(0, pos.x - boundingClientRect.x), range);
 
     const progress = x / range;
-    const frame = Math.round((frames.length - 1) * progress);
+    const frameNumber = Math.round(frames.frameCount * progress);
 
-    const videoTimeSeconds = frames[frame].videoTimeSeconds;
+    const videoTimeSeconds = frames.getTimeFromFrame(frameNumber);
     if (this.videoSource && videoTimeSeconds) {
       this.videoSource.seek(videoTimeSeconds);
     }
 
-    return { x: boundingClientRect.x + (range / frames.length) * frame - 5, y: dimensions.y };
+    return {
+      x: boundingClientRect.x + (range / frames.frameCount) * frameNumber - 5,
+      y: dimensions.y,
+    };
   };
 
   onDragTimeHandleEnd(event: CdkDragRelease) {
@@ -182,9 +185,8 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     ctx.clearRect(0, 0, width, height);
     if (!this._recording) return;
 
-    const frames = this._recording.trace.frames;
-    const framesCount = frames.length;
-    const lastFrameNanos = frames[framesCount - 1].frameNanos;
+    const timeline = this._recording.timeline;
+    const framesCount = timeline.frameCount;
 
     const maxMinorTicks = Math.min(Math.floor(width / minMinorGap), framesCount);
 
@@ -240,3 +242,47 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     ctx.stroke();
   }
 }
+
+interface ViewData {
+  label: string;
+  min: number;
+  max: number;
+  timeseries: number[];
+}
+//
+// function computeGraphs(recording: Recording | undefined) {
+//   if (!recording) return [];
+//
+//   const flatMap = new Map<string, ViewData>();
+//
+//
+//   // const frames = recording.trace.frames;
+//   // for (let i = 0; i < frames.length; i++) {
+//   //   const frame = frames[i];
+//   //
+//   //   function collectSamples(node: IViewNode | undefined | null) {
+//   //     if (!node )return;
+//   //
+//   //     const name = `${node.classname}@${node.hashcode}`;
+//   //     let entry = flatMap.get(name);
+//   //     if (!entry) {
+//   //       entry =  {
+//   //         label
+//   //
+//   //       }
+//   //     }
+//   //
+//   //
+//   //   }
+//   //
+//   //   collectSamples(frame.viewHierarchy);
+//   //
+//   //
+//   //
+//   // }
+//   //
+//   //
+//   //
+//   //   throw new Error('Function not implemented.');
+// }
+//

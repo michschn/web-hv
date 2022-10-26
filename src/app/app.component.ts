@@ -52,6 +52,35 @@ export class AppComponent implements OnInit, OnDestroy {
     return ConnectionStateIndicator[this._motionConnection.state.type].label;
   }
 
+  get connectionMenuHeader(): string {
+    if (this._motionConnection.state.type == 'error') {
+      return this.errorMessage;
+    }
+
+    return ConnectionStateIndicator[this._motionConnection.state.type].label;
+  }
+
+  get errorMessage(): string {
+    if (this._motionConnection.state.type !== 'error')  return '';
+
+    switch (this._motionConnection.state.detail) {
+      case 'deviceNotFound': return 'Device not found';
+      case 'processNotFound':
+      case 'windowNotFound':
+      case 'unknown':
+    }
+
+    return this._motionConnection.state.message ?? 'Unknwon error';
+  }
+
+
+  selectDevice() {
+    const url = window.location.toString();
+    const pathStart = url.indexOf('/motion.');
+
+    window.location.replace(url.substring(0, pathStart)  + '/index.html');
+  }
+
   get showProgress() {
     return this._progressTracker.isActive;
   }

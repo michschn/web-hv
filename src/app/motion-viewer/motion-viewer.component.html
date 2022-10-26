@@ -13,10 +13,39 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+<div *ngIf="!isConnected"  class="connection">
+  <div *ngIf="connectionState.type == 'connecting'">
+    <mat-spinner></mat-spinner>
+  </div>
+  <div *ngIf="connectionState.type == 'error'">
+    <div class="message error">
+      <mat-icon >error_outline</mat-icon>
+      <div class="content">
+        <div class="title">
+          {{ errorTitle }}
+          </div>
+        <div class="subtitle"></div>
+      </div>
+    </div>
 
-<div class="left-panel">
-  <ui-video-view [source]="liveVideo"></ui-video-view>
+  </div>
+  <div *ngIf="connectionState.type == 'unauthorized'">
+    <div class="message warning">
+      <mat-icon>warning_amber</mat-icon>
+      <div class="content">
+        <div class="title">Not authorized.</div>
+        <div class="subtitle">Authorize USB debugging on the device.</div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="right-panel">
-  <ui-oscilloscope-config-view></ui-oscilloscope-config-view>
+<div *ngIf="isConnected" class="contents">
+  <div class="left-panel">
+    <ui-video-view [source]="liveVideo"></ui-video-view>
+  </div>
+  <div class="right-panel">
+    <ui-oscilloscope-config-view></ui-oscilloscope-config-view>
+  </div>
+
 </div>
+

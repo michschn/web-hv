@@ -20,6 +20,7 @@ import { Deferred, isNamedError, namedError } from '../utils/utils';
 import * as api_proto from '../proto/api.js';
 import { LiveViewSource } from './video/live-view-source';
 import { VideoCapture } from './video/video-capture';
+import { delay } from 'rxjs';
 import motion_tool = api_proto.com.android.app.motiontool;
 
 const CLIENT_VERSION = 1;
@@ -205,7 +206,9 @@ export class MotionConnection extends EventTarget {
 
   async disconnect() {}
 
-  private _deviceStateChanges(state: ADB_DEVICE_STATE) {
+  private _deviceStateChangeRequestToken = 0;
+  private async _deviceStateChanges(state: ADB_DEVICE_STATE) {
+    const thisToken = ++this. _deviceStateChangeRequestToken;
     let deviceConnected = false;
     switch (state) {
       case STATE_DISCONNECTED:
@@ -225,6 +228,10 @@ export class MotionConnection extends EventTarget {
         };
         break;
       case STATE_UNAUTHORIZED:
+        // Regular connection flow cycles through unauthorized state - only report it to external
+        // observers when it stays there for some time.
+        await delay(200);
+        if (thisToken != this. _deviceStateChangeRequestToken) return;
         this.state = { type: 'unauthorized' };
         break;
       case STATE_CONNECTED_DEVICE:

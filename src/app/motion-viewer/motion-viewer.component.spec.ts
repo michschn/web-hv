@@ -26,7 +26,11 @@ describe('MotionViewerComponent', () => {
   let fixture: ComponentFixture<MotionViewerComponent>;
 
   beforeEach(async () => {
-    const motionConnection = jasmine.createSpyObj('MotionConnection', ['createLiveViewSource']);
+    const motionConnection = jasmine.createSpyObj(
+      'MotionConnection',
+      ['createLiveViewSource', 'addEventListener', 'removeEventListener'],
+      { state: { type: 'connecting' } }
+    );
     motionConnection.createLiveViewSource.and.returnValue(new FakeVideoSource(100, 200));
 
     await TestBed.configureTestingModule({

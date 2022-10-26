@@ -25,9 +25,17 @@
   <button mat-icon-button [matMenuTriggerFor]="connectionMenu">
     <mat-icon>{{ connectionStateIcon }}</mat-icon>
   </button>
-  <mat-menu #connectionMenu="matMenu"> </mat-menu>
+  <mat-menu #connectionMenu="matMenu">
+    <div class="status">
+      {{ connectionMenuHeader }}
+    </div>
+    <mat-divider></mat-divider>
+    <button mat-menu-item (click)="selectDevice()">
+      Select device & process
+    </button>
+  </mat-menu>
 </mat-toolbar>
 <div class="content mat-app-background">
   <mat-progress-bar *ngIf="showProgress" mode="indeterminate"></mat-progress-bar>
-  <router-outlet *ngIf="isConnected"></router-outlet>
+  <router-outlet></router-outlet>
 </div>

@@ -14,7 +14,60 @@
  * limitations under the License.
  */
 
+@use 'sass:map';
+
+$error-color: #D93025; // red 600
+$warn-color: #F9AB00; // yellow 600
+
 :host {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.connection {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  padding: 8px;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+
+  .message {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .message mat-icon {
+    align-self: center;
+    justify-self: center;
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: $warn-color;
+  }
+
+  .message.error mat-icon {
+    margin-right: 16px;
+    color: $error-color;
+  }
+
+  .message .content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .message .title {
+    font-size: 24px;
+  }
+
+  .message .subtitle {
+    margin-top: 4px;
+  }
+}
+
+.contents {
   flex-grow: 1;
   display: flex;
   flex-direction: row;

@@ -33,6 +33,8 @@ import { RecordingViewerComponent } from './recording-viewer/recording-viewer.co
 import { AppRoutingModule } from './app-routing.module';
 import { BLOB_STORAGE_FACTORY, OpfsBlobStorage } from '../storage/blob-storage';
 import { Preferences } from '../storage/preferences';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @NgModule({
   declarations: [AppComponent, MotionViewerComponent, RecordingViewerComponent],
@@ -46,6 +48,8 @@ import { Preferences } from '../storage/preferences';
     MatMenuModule,
     UiModule,
     AppRoutingModule,
+    MatDividerModule,
+    MatProgressSpinnerModule,
   ],
   providers: [
     {

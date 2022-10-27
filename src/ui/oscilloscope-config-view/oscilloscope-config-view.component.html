@@ -29,9 +29,28 @@
     <mat-expansion-panel-header>
       <mat-panel-title> Gesture </mat-panel-title>
       <mat-panel-description>
-        {{ gestureName }}
+        {{ gestureSummary }}
+        <div class="spacer"></div>
+        <mat-slide-toggle [(ngModel)]="useGestureScript" ></mat-slide-toggle>
       </mat-panel-description>
     </mat-expansion-panel-header>
-    <p>Configure gesture</p>
+    <div class="gestures">
+      <textarea
+        [class.error]="scriptErrorMessage"
+        #scriptInput
+        rows="10"
+        placeholder="Enter script..."
+        [value]="script"
+        (change)="scriptChanged()"
+      >
+      </textarea>
+      <div *ngIf="scriptErrorMessage" class="errorMessage">
+        {{ scriptErrorMessage }}
+      </div>
+
+      <button mat-icon-button [disabled]="scriptErrorMessage" (click)="testScript()">
+        <mat-icon>play_arrow</mat-icon>
+      </button>
+    </div>
   </mat-expansion-panel>
 </mat-accordion>

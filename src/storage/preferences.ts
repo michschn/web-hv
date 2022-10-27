@@ -21,11 +21,15 @@ export const LOOP_VIDEO = 'loop_video';
 type PreferencesData = {
   loopVideo: boolean;
   playbackRate: number;
+  gestureScript: string;
+  useGestureScript: boolean;
 };
 
 const PREFERENCES_DEFAULT_JSON = JSON.stringify({
   loopVideo: false,
   playbackRate: 1,
+  gestureScript: '',
+  useGestureScript: false,
 });
 
 @Injectable()
@@ -53,6 +57,26 @@ export class Preferences {
   set playbackRate(value: number) {
     if (this.playbackRate == value) return;
     this._preferences.playbackRate = value;
+    storePreferences(this._preferences);
+  }
+
+  get gestureScript(): string {
+    return this._preferences.gestureScript;
+  }
+
+  set gestureScript(value: string) {
+    if (this.gestureScript == value) return;
+    this._preferences.gestureScript = value;
+    storePreferences(this._preferences);
+  }
+
+  get useGestureScript(): boolean {
+    return this._preferences.useGestureScript;
+  }
+
+  set useGestureScript(value: boolean) {
+    if (this.useGestureScript == value) return;
+    this._preferences.useGestureScript = value;
     storePreferences(this._preferences);
   }
 }

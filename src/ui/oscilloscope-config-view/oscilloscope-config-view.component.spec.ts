@@ -17,14 +17,26 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { OscilloscopeConfigViewComponent } from './oscilloscope-config-view.component';
+import { Preferences } from '../../storage/preferences';
+import { MotionConnection } from '../../model/motion_connection';
 
 describe('OscilloscopeConfigViewComponent', () => {
   let component: OscilloscopeConfigViewComponent;
   let fixture: ComponentFixture<OscilloscopeConfigViewComponent>;
 
   beforeEach(async () => {
+    const motionConnection = jasmine.createSpyObj('MotionConnection', ['shellCommand']);
+    motionConnection.shellCommand.and.returnValue(Promise.resolve());
+
     await TestBed.configureTestingModule({
       declarations: [OscilloscopeConfigViewComponent],
+      providers: [
+        Preferences,
+        {
+          provide: MotionConnection,
+          useValue: motionConnection,
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(OscilloscopeConfigViewComponent);

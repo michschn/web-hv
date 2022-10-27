@@ -107,6 +107,9 @@ export async function loadVideoMetadata(
         winscope1PresentationTimes.push(payload.getBigUint64(4 + i * 8, true));
       }
     } else if (arrayBufferEquals(magic, WINSCOPE_MAGIC_STRING_V2)) {
+
+      console.log();
+
     }
   }
 

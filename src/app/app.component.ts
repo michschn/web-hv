@@ -20,6 +20,7 @@ import { MotionConnection, State } from '../model/motion_connection';
 import { ProgressTracker } from '../utils/progress';
 import { RecorderService } from '../model/recording/recorder.service';
 import { Router } from '@angular/router';
+import { Preferences } from '../storage/preferences';
 
 @Component({
   selector: 'app-root',
@@ -31,6 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private _motionConnection: MotionConnection,
     private _recordingService: RecorderService,
     private _progressTracker: ProgressTracker,
+    private _preferences: Preferences,
     private _router: Router
   ) {}
 
@@ -61,10 +63,11 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   get errorMessage(): string {
-    if (this._motionConnection.state.type !== 'error')  return '';
+    if (this._motionConnection.state.type !== 'error') return '';
 
     switch (this._motionConnection.state.detail) {
-      case 'deviceNotFound': return 'Device not found';
+      case 'deviceNotFound':
+        return 'Device not found';
       case 'processNotFound':
       case 'windowNotFound':
       case 'unknown':
@@ -73,12 +76,11 @@ export class AppComponent implements OnInit, OnDestroy {
     return this._motionConnection.state.message ?? 'Unknwon error';
   }
 
-
   selectDevice() {
     const url = window.location.toString();
     const pathStart = url.indexOf('/motion.');
 
-    window.location.replace(url.substring(0, pathStart)  + '/index.html');
+    window.location.replace(url.substring(0, pathStart) + '/index.html');
   }
 
   get showProgress() {
@@ -99,7 +101,15 @@ export class AppComponent implements OnInit, OnDestroy {
       const recordingId = await this._progressTracker.trackPromise(recordingPromise);
       this._router.navigate(['recording', { id: recordingId }]);
     } else {
-      this._recordingService.startRecording();
+      if (this._preferences.useGestureScript) {
+        const recordingPromise = this._recordingService.recordScript(
+          this._preferences.gestureScript
+        );
+        const recordingId = await this._progressTracker.trackPromise(recordingPromise);
+        this._router.navigate(['recording', { id: recordingId }]);
+      } else {
+        this._recordingService.startRecording();
+      }
     }
   }
 }

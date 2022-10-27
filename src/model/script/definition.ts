@@ -1,4 +1,4 @@
-/*!
+/*
  * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,27 +14,32 @@
  * limitations under the License.
  */
 
-$error-color: #D93025; // red 600
+export type Step = Simple | Swipe | Tap | Sleep;
+export type StepType = Step['type'];
 
-
-mat-panel-description {
-  display: flex;
-  flex-direction: row;
-
-  .spacer {
-    flex-grow: 1;
-  }
+export interface Simple {
+  type: 'begin' | 'end';
 }
 
-.gestures {
-  display: flex;
-  flex-direction: column;
+export interface Sleep {
+  type: 'sleep';
+
+  durationMillis: number;
 }
 
-textarea.error {
-  outline: $error-color;
-  }
+export interface Point {
+  x: number;
+  y: number;
+}
 
-.errorMessage  {
-  color: $error-color;
+export interface Swipe {
+  type: 'swipe';
+  start: Point;
+  end: Point;
+  durationMillis: number;
+}
+
+export interface Tap {
+  type: 'tap';
+  at: Point;
 }

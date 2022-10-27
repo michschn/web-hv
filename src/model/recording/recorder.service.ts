@@ -25,7 +25,9 @@ import Long from 'long';
 import { loadVideoMetadata } from './mp4parser';
 import { BLOB_STORAGE_FACTORY, BlobStorage, BlobStorageFactory } from '../../storage/blob-storage';
 import { BLOB_SCREENRECORDING_NAME, BLOB_TRACE_NAME } from './constants';
-import { longToBigInt } from '../../utils/utils';
+import { Deferred, longToBigInt } from '../../utils/utils';
+import { Step } from '../script/definition';
+import { ScriptRunner } from '../script/script-runner';
 import motion_tool = com.android.app.motiontool;
 import view_capture = com.android.app.viewcapture.data;
 import Timestamp = google.protobuf.Timestamp;
@@ -46,12 +48,40 @@ export class RecorderService {
     @Inject(BLOB_STORAGE_FACTORY) private readonly _blobStorageFactory: BlobStorageFactory
   ) {}
 
+  private _isRecording = false;
+
   get isRecording(): boolean {
-    return this._inProgressRecording != null;
+    return this._isRecording;
   }
 
   async loadRecoring(recordingId: string): Promise<Recording> {
     return Recording.load(await this._blobStorageFactory(recordingId));
+  }
+
+  async recordScript(script: string): Promise<string> {
+    return await navigator.locks.request(RECORDER_SERVICE_LOCK, async () => {
+      this._isRecording = true;
+
+      const recording = new Deferred<string>();
+
+      try {
+        const scriptRunner = new ScriptRunner(this._motionConnection, {
+          beginRecording: () => this._doStartRecording(),
+          endRecording: async () => {
+            const result = await this._doStopRecording();
+            await result.traceEnded;
+            result.recordingAvailable.then(recordingId => recording.resolve(recordingId));
+          },
+        });
+
+        await scriptRunner.run(script);
+
+        // The validated script is guaranteed to contain begin/endRecording calls
+        return await recording;
+      } finally {
+        this._isRecording = false;
+      }
+    });
   }
 
   /**
@@ -60,40 +90,57 @@ export class RecorderService {
    * Only one trace can be active at the moment - this method throws an error is there is already
    * a session running.
    */
-  async startRecording(): Promise<void> {
+  async startRecording(script?: ReadonlyArray<Step>): Promise<void> {
     await navigator.locks.request(RECORDER_SERVICE_LOCK, async () => {
-      checkState(!this._inProgressRecording);
-
-      const videoCapture = await this._motionConnection.createVideoCapture();
-
-      // start the motion trace first. Since motion frame data must be available for all video frames,
-      // it's easy to just toss out the extra motion trace data afterwards.
-      const traceId = await this._beginTrace();
-
-      await videoCapture.record();
-
-      this._inProgressRecording = new OngoingRecording(videoCapture, traceId);
-
-      this._scheduleTraceDataPoll();
+      this._isRecording = true;
+      await this._doStartRecording();
     });
   }
 
   async stopRecording(): Promise<string> {
     return await navigator.locks.request(RECORDER_SERVICE_LOCK, async () => {
-      const recording = checkNotNull(this._inProgressRecording);
-      this._inProgressRecording = null;
+      try {
+        const result = await this._doStopRecording();
+        return result.recordingAvailable;
+      } finally {
+        this._isRecording = false;
+      }
+    });
+  }
 
-      await this._cancelTraceDataPoll();
+  private async _doStartRecording() {
+    checkState(!this._inProgressRecording);
 
-      const recordingId = crypto.randomUUID();
-      const blobStorage = await this._blobStorageFactory(recordingId);
+    const videoCapture = await this._motionConnection.createVideoCapture();
 
-      // Stop video recording
-      const videoCaptureBytes = await recording.videoCapture.stop();
-      await Promise.all([
-        this._endTrace(recording),
-        videoCaptureBytes.pipeTo(await blobStorage.writeable(BLOB_SCREENRECORDING_NAME)),
-      ]);
+    // start the motion trace first. Since motion frame data must be available for all video frames,
+    // it's easy to just toss out the extra motion trace data afterwards.
+    const traceId = await this._beginTrace();
+
+    await videoCapture.record();
+
+    this._inProgressRecording = new OngoingRecording(videoCapture, traceId);
+
+    this._scheduleTraceDataPoll();
+  }
+
+  private async _doStopRecording(): Promise<{
+    traceEnded: Promise<void>;
+    recordingAvailable: Promise<string>;
+  }> {
+    const recording = checkNotNull(this._inProgressRecording);
+    this._inProgressRecording = null;
+
+    await this._cancelTraceDataPoll();
+
+    const recordingId = crypto.randomUUID();
+    const blobStorage = await this._blobStorageFactory(recordingId);
+
+    // Stop video recording
+    const videoCaptureBytes = await recording.videoCapture.stop();
+    const traceEnded = this._endTrace(recording);
+    const recordingAvailable = traceEnded.then(async () => {
+      await videoCaptureBytes.pipeTo(await blobStorage.writeable(BLOB_SCREENRECORDING_NAME));
 
       const { processName, windowId } = this._motionConnection;
       const windowName = windowId.substring(0, windowId.indexOf('/'));
@@ -108,6 +155,7 @@ export class RecorderService {
 
       return recordingId;
     });
+    return { traceEnded, recordingAvailable };
   }
 
   async _beginTrace(): Promise<number> {
@@ -249,12 +297,11 @@ async function createTraceFile(
     frames,
   });
 
-  console.log('Trace captured', trace);
-
   const traceBytes = Trace.encode(trace).finish();
   const writer = (await blobStorage.writeable(BLOB_TRACE_NAME)).getWriter();
   try {
     await writer.write(traceBytes);
+    console.log('wrote trace');
   } finally {
     await writer.close();
     writer.releaseLock();

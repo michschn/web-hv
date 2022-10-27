@@ -46,8 +46,6 @@ export class MotionViewerComponent implements OnInit, OnDestroy {
     return this._motionConnection.state;
   }
 
-
-
   private _isConnected = false;
   get isConnected(): boolean {
     return this._isConnected;

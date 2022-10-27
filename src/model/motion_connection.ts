@@ -204,6 +204,10 @@ export class MotionConnection extends EventTarget {
     return new VideoCapture(checkNotNull(this._adbDevice));
   }
 
+   shellCommand(command: string): Promise<string> {
+    return checkNotNull(this._adbDevice).shellCommand(command);
+  }
+
   async disconnect() {}
 
   private _deviceStateChangeRequestToken = 0;

@@ -137,9 +137,10 @@ export class RecorderService {
     const blobStorage = await this._blobStorageFactory(recordingId);
 
     // Stop video recording
-    const videoCaptureBytes = await recording.videoCapture.stop();
+    const { video } = await recording.videoCapture.stop();
     const traceEnded = this._endTrace(recording);
     const recordingAvailable = traceEnded.then(async () => {
+      const videoCaptureBytes = await video;
       await videoCaptureBytes.pipeTo(await blobStorage.writeable(BLOB_SCREENRECORDING_NAME));
 
       const { processName, windowId } = this._motionConnection;

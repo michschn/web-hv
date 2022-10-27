@@ -42,14 +42,12 @@ export class VideoCapture {
     await delay(200);
   }
 
-  async stop(): Promise<ReadableStream<Uint8Array>> {
+  async stop(): Promise<{ video: Promise<ReadableStream<Uint8Array>> }> {
     if (this._captureState === null) {
       throw new Error('Illegal State: no video capture in progress');
     }
     const { filename, shellStream } = this._captureState;
     this._captureState = null;
-
-    const adbDevice = this._device;
 
     // Send ctrl-c to end the recording.
     await shellStream.write('\x03');
@@ -57,6 +55,11 @@ export class VideoCapture {
     // TODO: The stream is never correctly closed, which would be a good signal to understand
     // when the recording is completely written to disk.
 
+    return { video: this._pullVideo(filename) };
+  }
+
+  private async _pullVideo(filename: string) {
+    const adbDevice = this._device;
     const sync = new SyncClient(adbDevice);
     try {
       // Await the file being written, with some timeout in case the heuristic was bad.

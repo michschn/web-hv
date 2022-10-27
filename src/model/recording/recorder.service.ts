@@ -331,8 +331,27 @@ function convertViewHierarchy(
   getClassName: (classNameIndex: number) => string
 ): motion.IViewNode {
   return new motion.ViewNode({
-    ...node,
+    // cannot just spread node here (as in `...node`), because default values
+    // get lost in the proto3 conversion.
     classname: node.classnameIndex ? getClassName(node.classnameIndex) : null,
+    hashcode: node.hashcode,
+    id: node.id,
+    left: node.left,
+    top: node.top,
+    width: node.width,
+    height: node.height,
+    scrollX: node.scrollX,
+    scrollY: node.scrollY,
+    translationX: node.translationX,
+    translationY: node.translationY,
+    scaleX: node.scaleX,
+    scaleY: node.scaleY,
+    alpha: node.alpha,
+    willNotDraw: node.willNotDraw,
+    clipChildren: node.clipChildren,
+    visibility: node.visibility,
+    elevation: node.elevation,
+
     children: node.children?.map(child => convertViewHierarchy(child, getClassName)),
   });
 }

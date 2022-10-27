@@ -55,16 +55,23 @@ export class GraphComponent implements OnChanges {
     this._renderGraph();
   }
 
+  get labelLeft() {
+    const ranges = this.graphConfig?.property?.series?.activeRanges;
+    return ranges && ranges.length && this.timeline
+      ? `${this.timeline.frameToPx(ranges[0].start)}px`
+      : 0;
+  }
+
   private _renderGraph() {
     const property = this.graphConfig?.property;
     const timeline = this.timeline;
 
     const canvas = this.canvas.nativeElement;
     const cw = canvas.width;
-    const ch = canvas.height;
+    const ch = 30;
 
     const ctx = checkNotNull(canvas.getContext('2d'));
-    ctx.clearRect(0, 0, cw, ch);
+    ctx.clearRect(0, 0, cw, canvas.height);
 
     if (!property || !timeline) return;
 
@@ -81,37 +88,40 @@ export class GraphComponent implements OnChanges {
       max += 1;
     }
 
-    const beginIndex = 0;
-    if (beginIndex < 0) {
-      return;
-    }
-    let endIndex = series.length;
+    const { start, end } = series.activeRanges[0] ?? { start: 0, end: series.length };
 
     const bottomLineWidth = 2;
-    ctx.beginPath();
-
-    ctx.moveTo(timeline.frameToPx(beginIndex), ch - bottomLineWidth);
-    for (let i = beginIndex; i < endIndex; i++) {
-      const value = series.at(i);
-      if (typeof value !== 'number') {
-        continue;
-      }
-      ctx.lineTo(timeline.frameToPx(i), (1 - (value - min) / (max - min)) * ch);
-    }
-    ctx.lineTo(timeline.frameToPx(endIndex - 1), ch - bottomLineWidth);
-    ctx.closePath();
-    // ctx.lineTo = orig
-    ctx.fillStyle = this._lighten(color);
+    // solid bottom line
+    ctx.fillStyle = color;
+    ctx.arc(timeline.frameToPx(start), ch - bottomLineWidth / 2, 5, 0, 2 * Math.PI);
+    ctx.arc(timeline.frameToPx(end - 1), ch - bottomLineWidth / 2, 5, 0, 2 * Math.PI);
     ctx.fill();
 
-    // solid bottom line
+    ctx.save();
+    try {
+      ctx.fillStyle = this._lighten(color);
+      ctx.beginPath();
+      ctx.moveTo(timeline.frameToPx(start), ch - bottomLineWidth);
+      for (let i = start; i < end; i++) {
+        const value = series.at(i);
+        if (typeof value !== 'number') {
+          continue;
+        }
+        ctx.lineTo(timeline.frameToPx(i), (1 - (value - min) / (max - min)) * ch);
+      }
+      ctx.lineTo(timeline.frameToPx(end - 1), ch - bottomLineWidth);
+      ctx.fill();
+    } finally {
+      ctx.restore();
+    }
+
     ctx.beginPath();
-
-    ctx.moveTo(timeline.frameToPx(beginIndex), ch - bottomLineWidth / 2);
-    ctx.lineTo(timeline.frameToPx(endIndex - 1), ch - bottomLineWidth / 2);
-
     ctx.strokeStyle = color;
     ctx.lineWidth = bottomLineWidth;
+
+    ctx.moveTo(timeline.frameToPx(start), ch - bottomLineWidth / 2);
+    ctx.lineTo(timeline.frameToPx(end - 1), ch - bottomLineWidth / 2);
+
     ctx.stroke();
   }
 

@@ -54,8 +54,8 @@ export class RecordingViewerComponent implements OnInit, OnDestroy {
         this.viewConfig.graphs =
           recording?.properties?.properties
             ?.filter(property => property.series.hasChangesInRange(0, 1))
-            ?.filter(property => property.label.indexOf('Brightness') != -1)
-            ?.slice(0, 10)
+            // ?.filter(property => property.label.indexOf('Brightness') != -1)
+            // ?.slice(0, 10)
             ?.map((property, index) => ({
               color: PROBE_COLORS[index % PROBE_COLORS.length],
               property: property as Property<number>,

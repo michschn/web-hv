@@ -48,6 +48,7 @@ export class Recording implements Disposable {
       duration
     );
     const properties = transposeTrace(trace, viewIdFactory);
+
     const videoSource = await RecordedViewSource.createVideoSource(storage);
 
     return new Recording(viewIdFactory, properties, timeline, videoSource);

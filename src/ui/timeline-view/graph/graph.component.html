@@ -14,5 +14,5 @@
   ~ limitations under the License.
   -->
 
-  <div class="graph-container"><canvas #canvas></canvas></div>
-  <div class="label">{{graphConfig?.property?.label}}</div>
+<div class="graph-container"><canvas #canvas></canvas></div>
+<div class="label" [style.left]="labelLeft" >{{ graphConfig?.property?.label }}</div>

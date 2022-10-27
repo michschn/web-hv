@@ -16,6 +16,11 @@
 
 import { checkArgument, checkState } from '../../utils/preconditions';
 
+interface Range {
+  readonly start: number;
+  readonly end: number;
+}
+
 /**
  * Array-like structure to store a values per frame.
  */
@@ -30,6 +35,7 @@ export interface FrameSeries<T> extends Iterable<T | undefined> {
   readonly max?: T;
 
   hasChangesInRange(start: number, end: number): boolean;
+  readonly activeRanges: ReadonlyArray<Range>;
 }
 
 type MinMaxFn<T> = (values: (T | undefined)[]) => T | undefined;
@@ -117,6 +123,7 @@ const UNDEFINED_MIN_MAX: MinMaxFn<any> = fixedMinMaxValue(undefined);
 
 /** A FrameSeries where the value is constant over the whole time series. */
 class ConstantValueFrameSeries<T> implements FrameSeries<T> {
+  readonly activeRanges = [];
   constructor(
     readonly length: number,
     private readonly value: T | undefined,
@@ -185,6 +192,32 @@ class CoalescedFrameSeries<T> implements FrameSeries<T> {
   hasChangesInRange(start: number, end: number) {
     // TODO
     return true;
+  }
+
+  private _activeRanges?: ReadonlyArray<Range>;
+  get activeRanges(): ReadonlyArray<Range> {
+    if (!this._activeRanges) {
+      // this is an initial approach only - due to integer stepping. need to think more about how
+      // to sequence
+
+      let start = 1;
+      while (start < this.length) {
+        const hasValue = this._bitset.getUint8(start / 8) & (1 << start % 8);
+        if (hasValue) break;
+        start++;
+      }
+      if (start == 1) start = 0;
+
+      let end = this.length - 1;
+      while (end > start) {
+        const hasValue = this._bitset.getUint8(end / 8) & (1 << end % 8);
+        if (hasValue) break;
+        end--;
+      }
+      this._activeRanges = [{start, end}];
+    }
+
+    return this._activeRanges;
   }
 }
 

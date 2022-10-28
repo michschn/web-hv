@@ -208,6 +208,10 @@ export class MotionConnection extends EventTarget {
     return checkNotNull(this._adbDevice).shellCommand(command);
   }
 
+  execOut(command: string): Promise<string> {
+    return checkNotNull(this._adbDevice).openStream('exec-out:' + command).readAll();
+  }
+
   async disconnect() {}
 
   private _deviceStateChangeRequestToken = 0;
@@ -282,7 +286,6 @@ export class MotionConnection extends EventTarget {
     });
 
     const handshakeResponse = (await this.sendRequest(request)).handshake;
-    console.log("handshake response: " + handshakeResponse);
   }
 }
 

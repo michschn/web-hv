@@ -252,28 +252,45 @@ async function createTraceFile(
   );
 
   let motionFrameTimes = [...frameToViewHierarchy.keys()].sort();
-  // checkState(videoMetadata.videoFrames.length <= motionFrameTimes.length);
 
-  // TODO: align video frames with motion frames
-  const winscopeBaseFrameTime = videoMetadata.videoFrames.at(0)?.winscope1PtsMicros ?? 0n;
-  const frames = videoMetadata.videoFrames.map((frame, index) => {
-    let frameNanos = Long.UZERO;
-    if (frame.winscope1PtsMicros) {
-      frameNanos = Long.fromValue(
-        Number((frame.winscope1PtsMicros - winscopeBaseFrameTime) * 1_000n)
-      );
-    } else {
-      frameNanos = Long.fromValue(frame.time * 1_000_000_000);
+  let sum = 0n;
+  for (let i = 1; i < motionFrameTimes.length; i++) {
+    sum += motionFrameTimes[i] - motionFrameTimes[i - 1];
+  }
+
+  const avg = sum / BigInt(motionFrameTimes.length - 1);
+
+  function closestMotionFrameTime(nanos: bigint): bigint {
+    let start = 0;
+    let end = motionFrameTimes.length - 1;
+
+    while (start <= end) {
+      let mid = (start + end) >> 1;
+
+      if (motionFrameTimes[mid] === nanos) {
+        return motionFrameTimes[mid];
+      }
+
+      if (nanos < motionFrameTimes[mid]) {
+        end = mid - 1;
+      } else {
+        start = mid + 1;
+      }
     }
 
+    return motionFrameTimes[end];
+  }
+
+  // checkState(videoMetadata.videoFrames.length <= motionFrameTimes.length);
+
+  const frames = videoMetadata.videoFrames.map((frame, index) => {
     return new Frame({
       frameNumber: frame.index,
-      frameNanos,
       videoTimeSeconds: frame.time,
-      viewHierarchy: frameToViewHierarchy.get(
-        // TODO find aligned frame
-        motionFrameTimes[Math.min(index, motionFrameTimes.length - 1)]
-      ),
+      // There are no stable identifers for the video to match to. experimentation with
+      // `adb shell dumpsys gfxinfo framestats` suggest that the current delay from rendering
+      // screen is 2-3 frames. We go with that until we have a better ID on the video frame.
+      viewHierarchy: frameToViewHierarchy.get(closestMotionFrameTime(frame.ptsNanos - 3n * avg)),
     });
   });
 
@@ -317,9 +334,9 @@ function toFrameByFrameViewHierarchy({
   }
 
   return new Map(
-    frameData!.map(({ timestamp, node: rootNode }) => {
+    frameData!.map(({ timestampNanos, node: rootNode }) => {
       return [
-        longToBigInt(Long.fromValue(checkNotNull(timestamp))),
+        longToBigInt(Long.fromValue(checkNotNull(timestampNanos))),
         convertViewHierarchy(checkNotNull(rootNode), getClassName),
       ];
     })

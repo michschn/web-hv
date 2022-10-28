@@ -40,8 +40,8 @@ export interface FrameMetadata {
   index: number;
   /** Frame time, represented as a double-precision floating-point value in seconds. */
   time: number;
-  /** Presentation time relative to the elapsed realtime clock in microseconds. */
-  winscope1PtsMicros?: bigint;
+  /** Presentation time relative to the elapsed realtime clock in nanoseconds. */
+  ptsNanos: bigint;
 }
 
 export async function loadVideoMetadata(
@@ -81,7 +81,8 @@ export async function loadVideoMetadata(
   };
 
   const frames: FrameMetadata[] = [];
-  let winscope1PresentationTimes: bigint[] | undefined;
+  let ptsNanos: bigint[] | undefined;
+  let rteNanos: bigint | undefined;
 
   function consumeFrameSample(sample: Sample) {
     const timescale = sample.timescale;
@@ -89,6 +90,7 @@ export async function loadVideoMetadata(
     frames.push({
       index: sample.number,
       time: sample.cts / timescale,
+      ptsNanos: 0n,
     });
   }
 
@@ -100,16 +102,16 @@ export async function loadVideoMetadata(
       sample.data.byteOffset + WINSCOPE_MAGIC_STRING_LENGTH
     );
 
-    if (arrayBufferEquals(magic, WINSCOPE_MAGIC_STRING_V1)) {
-      const frameCount = payload.getUint32(0, true);
-      winscope1PresentationTimes = [];
-      for (let i = 0; i < frameCount; i++) {
-        winscope1PresentationTimes.push(payload.getBigUint64(4 + i * 8, true));
+    if (arrayBufferEquals(magic, WINSCOPE_MAGIC_STRING_V2)) {
+      const metadataVersion = payload.getUint32(0, true);
+      if (metadataVersion == 2) {
+        rteNanos = payload.getBigUint64(4, true);
+        const frameCount = payload.getUint32(12, true);
+        ptsNanos = [];
+        for (let i = 0; i < frameCount; i++) {
+          ptsNanos.push(payload.getBigUint64(16 + i * 8, true));
+        }
       }
-    } else if (arrayBufferEquals(magic, WINSCOPE_MAGIC_STRING_V2)) {
-
-      console.log();
-
     }
   }
 
@@ -147,11 +149,13 @@ export async function loadVideoMetadata(
     throw new Error('Video track not found');
   }
 
-  if (winscope1PresentationTimes) {
-    checkState(winscope1PresentationTimes.length === frames.length);
-    for (let i = 0; i < winscope1PresentationTimes.length; i++) {
-      frames[i].winscope1PtsMicros = winscope1PresentationTimes[i];
-    }
+  if (!ptsNanos) {
+    throw new Error('Winscope data not found');
+  }
+
+  checkState(ptsNanos.length === frames.length);
+  for (let i = 0; i < ptsNanos.length; i++) {
+    frames[i].ptsNanos = ptsNanos[i];
   }
 
   parser.stop();

@@ -78,7 +78,6 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
   ngAfterViewChecked() {
     const isPlaying = this.videoSource?.state === 'play';
     if (isPlaying == this._isPlaying) return;
-    console.log('play state changes');
 
     this._isPlaying = isPlaying;
     if (isPlaying) {

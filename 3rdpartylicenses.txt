@@ -635,6 +635,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+ng-keyboard-shortcuts
+MIT
+
 protobufjs
 BSD-3-Clause
 This license applies to all parts of protobuf.js except those files

@@ -221,7 +221,6 @@ export class RecorderService {
     if (response.error) {
       throw new Error(response.error.message ?? 'Unknown error');
     }
-
     const exportedData = checkNotNull(response.pollTrace?.exportedData);
     recordingState.pollData.push(exportedData);
   }
@@ -334,9 +333,9 @@ function toFrameByFrameViewHierarchy({
   }
 
   return new Map(
-    frameData!.map(({ timestampNanos, node: rootNode }) => {
+    frameData!.map(({ timestamp, node: rootNode }) => {
       return [
-        longToBigInt(Long.fromValue(checkNotNull(timestampNanos))),
+        longToBigInt(Long.fromValue(checkNotNull(timestamp))),
         convertViewHierarchy(checkNotNull(rootNode), getClassName),
       ];
     })

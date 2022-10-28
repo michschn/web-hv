@@ -1494,9 +1494,6 @@ export namespace com {
 
                         /** FrameData node */
                         node?: (com.android.app.viewcapture.data.IViewNode|null);
-
-                        /** FrameData timestampNanos */
-                        timestampNanos?: (number|Long|null);
                     }
 
                     /** Represents a FrameData. */
@@ -1513,9 +1510,6 @@ export namespace com {
 
                         /** FrameData node. */
                         public node?: (com.android.app.viewcapture.data.IViewNode|null);
-
-                        /** FrameData timestampNanos. */
-                        public timestampNanos: (number|Long);
 
                         /**
                          * Creates a new FrameData instance using the specified properties.

@@ -28,7 +28,6 @@ message ExportedData {
 message FrameData {
   optional int64 timestamp = 1;
   optional ViewNode node = 2;
-  optional int64 timestamp_nanos = 3;
 }
 
 message ViewNode {

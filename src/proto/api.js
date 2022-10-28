@@ -3253,7 +3253,6 @@ export const com = $root.com = (() => {
                          * @interface IFrameData
                          * @property {number|Long|null} [timestamp] FrameData timestamp
                          * @property {com.android.app.viewcapture.data.IViewNode|null} [node] FrameData node
-                         * @property {number|Long|null} [timestampNanos] FrameData timestampNanos
                          */
 
                         /**
@@ -3288,14 +3287,6 @@ export const com = $root.com = (() => {
                         FrameData.prototype.node = null;
 
                         /**
-                         * FrameData timestampNanos.
-                         * @member {number|Long} timestampNanos
-                         * @memberof com.android.app.viewcapture.data.FrameData
-                         * @instance
-                         */
-                        FrameData.prototype.timestampNanos = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
-
-                        /**
                          * Creates a new FrameData instance using the specified properties.
                          * @function create
                          * @memberof com.android.app.viewcapture.data.FrameData
@@ -3323,8 +3314,6 @@ export const com = $root.com = (() => {
                                 writer.uint32(/* id 1, wireType 0 =*/8).int64(message.timestamp);
                             if (message.node != null && Object.hasOwnProperty.call(message, "node"))
                                 $root.com.android.app.viewcapture.data.ViewNode.encode(message.node, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                            if (message.timestampNanos != null && Object.hasOwnProperty.call(message, "timestampNanos"))
-                                writer.uint32(/* id 3, wireType 0 =*/24).int64(message.timestampNanos);
                             return writer;
                         };
 
@@ -3365,10 +3354,6 @@ export const com = $root.com = (() => {
                                     }
                                 case 2: {
                                         message.node = $root.com.android.app.viewcapture.data.ViewNode.decode(reader, reader.uint32());
-                                        break;
-                                    }
-                                case 3: {
-                                        message.timestampNanos = reader.int64();
                                         break;
                                     }
                                 default:
@@ -3414,9 +3399,6 @@ export const com = $root.com = (() => {
                                 if (error)
                                     return "node." + error;
                             }
-                            if (message.timestampNanos != null && message.hasOwnProperty("timestampNanos"))
-                                if (!$util.isInteger(message.timestampNanos) && !(message.timestampNanos && $util.isInteger(message.timestampNanos.low) && $util.isInteger(message.timestampNanos.high)))
-                                    return "timestampNanos: integer|Long expected";
                             return null;
                         };
 
@@ -3446,15 +3428,6 @@ export const com = $root.com = (() => {
                                     throw TypeError(".com.android.app.viewcapture.data.FrameData.node: object expected");
                                 message.node = $root.com.android.app.viewcapture.data.ViewNode.fromObject(object.node);
                             }
-                            if (object.timestampNanos != null)
-                                if ($util.Long)
-                                    (message.timestampNanos = $util.Long.fromValue(object.timestampNanos)).unsigned = false;
-                                else if (typeof object.timestampNanos === "string")
-                                    message.timestampNanos = parseInt(object.timestampNanos, 10);
-                                else if (typeof object.timestampNanos === "number")
-                                    message.timestampNanos = object.timestampNanos;
-                                else if (typeof object.timestampNanos === "object")
-                                    message.timestampNanos = new $util.LongBits(object.timestampNanos.low >>> 0, object.timestampNanos.high >>> 0).toNumber();
                             return message;
                         };
 
@@ -3478,11 +3451,6 @@ export const com = $root.com = (() => {
                                 } else
                                     object.timestamp = options.longs === String ? "0" : 0;
                                 object.node = null;
-                                if ($util.Long) {
-                                    let long = new $util.Long(0, 0, false);
-                                    object.timestampNanos = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
-                                } else
-                                    object.timestampNanos = options.longs === String ? "0" : 0;
                             }
                             if (message.timestamp != null && message.hasOwnProperty("timestamp"))
                                 if (typeof message.timestamp === "number")
@@ -3491,11 +3459,6 @@ export const com = $root.com = (() => {
                                     object.timestamp = options.longs === String ? $util.Long.prototype.toString.call(message.timestamp) : options.longs === Number ? new $util.LongBits(message.timestamp.low >>> 0, message.timestamp.high >>> 0).toNumber() : message.timestamp;
                             if (message.node != null && message.hasOwnProperty("node"))
                                 object.node = $root.com.android.app.viewcapture.data.ViewNode.toObject(message.node, options);
-                            if (message.timestampNanos != null && message.hasOwnProperty("timestampNanos"))
-                                if (typeof message.timestampNanos === "number")
-                                    object.timestampNanos = options.longs === String ? String(message.timestampNanos) : message.timestampNanos;
-                                else
-                                    object.timestampNanos = options.longs === String ? $util.Long.prototype.toString.call(message.timestampNanos) : options.longs === Number ? new $util.LongBits(message.timestampNanos.low >>> 0, message.timestampNanos.high >>> 0).toNumber() : message.timestampNanos;
                             return object;
                         };
 

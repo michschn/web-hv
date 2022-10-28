@@ -28,6 +28,7 @@ import { BLOB_SCREENRECORDING_NAME, BLOB_TRACE_NAME } from './constants';
 import { Deferred, longToBigInt } from '../../utils/utils';
 import { Step } from '../script/definition';
 import { ScriptRunner } from '../script/script-runner';
+import { frameBinarySearch } from '../../utils/video';
 import motion_tool = com.android.app.motiontool;
 import view_capture = com.android.app.viewcapture.data;
 import Timestamp = google.protobuf.Timestamp;
@@ -131,13 +132,14 @@ export class RecorderService {
     const recording = checkNotNull(this._inProgressRecording);
     this._inProgressRecording = null;
 
+    // Stop video recording
+    const { video } = await recording.videoCapture.stop();
+
     await this._cancelTraceDataPoll();
 
     const recordingId = crypto.randomUUID();
     const blobStorage = await this._blobStorageFactory(recordingId);
 
-    // Stop video recording
-    const { video } = await recording.videoCapture.stop();
     const traceEnded = this._endTrace(recording);
     const recordingAvailable = traceEnded.then(async () => {
       const videoCaptureBytes = await video;
@@ -244,7 +246,7 @@ async function createTraceFile(
     windowName: string;
   }
 ): Promise<void> {
-  const videoMetadata = await loadVideoMetadata(blobStorage, { readFrameData: true });
+  const videoMetadata = await loadVideoMetadata(blobStorage);
 
   const frameToViewHierarchy: Map<bigint, motion.IViewNode> = new Map(
     data.capturedMotion.flatMap(chunk => [...toFrameByFrameViewHierarchy(chunk).entries()])
@@ -259,37 +261,17 @@ async function createTraceFile(
 
   const avg = sum / BigInt(motionFrameTimes.length - 1);
 
-  function closestMotionFrameTime(nanos: bigint): bigint {
-    let start = 0;
-    let end = motionFrameTimes.length - 1;
-
-    while (start <= end) {
-      let mid = (start + end) >> 1;
-
-      if (motionFrameTimes[mid] === nanos) {
-        return motionFrameTimes[mid];
-      }
-
-      if (nanos < motionFrameTimes[mid]) {
-        end = mid - 1;
-      } else {
-        start = mid + 1;
-      }
-    }
-
-    return motionFrameTimes[end];
-  }
-
   // checkState(videoMetadata.videoFrames.length <= motionFrameTimes.length);
 
   const frames = videoMetadata.videoFrames.map((frame, index) => {
+    // There are no stable identifers for the video to match to. experimentation with
+    // `adb shell dumpsys gfxinfo framestats` suggest that the current delay from rendering
+    // screen is 3 frames. We go with that until we have a better ID on the video frame.
+    const traceFrameIndex = frameBinarySearch(frame.ptsNanos -4n * avg, motionFrameTimes);
     return new Frame({
       frameNumber: frame.index,
       videoTimeSeconds: frame.time,
-      // There are no stable identifers for the video to match to. experimentation with
-      // `adb shell dumpsys gfxinfo framestats` suggest that the current delay from rendering
-      // screen is 2-3 frames. We go with that until we have a better ID on the video frame.
-      viewHierarchy: frameToViewHierarchy.get(closestMotionFrameTime(frame.ptsNanos - 3n * avg)),
+      viewHierarchy: frameToViewHierarchy.get(motionFrameTimes[traceFrameIndex]),
     });
   });
 
@@ -318,7 +300,6 @@ async function createTraceFile(
   const writer = (await blobStorage.writeable(BLOB_TRACE_NAME)).getWriter();
   try {
     await writer.write(traceBytes);
-    console.log('wrote trace');
   } finally {
     await writer.close();
     writer.releaseLock();

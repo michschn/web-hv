@@ -41,44 +41,44 @@ describe('Timeline', () => {
     });
 
     it('returns first frame for times in range of first frame', () => {
-      expect(subject.frameToTime(0.1)).toBe(0);
-      expect(subject.frameToTime(0.5)).toBe(0);
-      expect(subject.frameToTime(0.9)).toBe(0);
+      expect(subject.timeToFrame(0.1)).toBe(0);
+      expect(subject.timeToFrame(0.5)).toBe(0);
+      expect(subject.timeToFrame(0.9)).toBe(0);
     });
 
     it('returns second frame for times in range of second frame', () => {
-      expect(subject.frameToTime(1.1)).toBe(1);
-      expect(subject.frameToTime(1.5)).toBe(1);
-      expect(subject.frameToTime(1.9)).toBe(1);
+      expect(subject.timeToFrame(1.1)).toBe(1);
+      expect(subject.timeToFrame(1.5)).toBe(1);
+      expect(subject.timeToFrame(1.9)).toBe(1);
     });
 
     it('returns second last for times in range of last frame', () => {
-      expect(subject.frameToTime(3.1)).toBe(3);
-      expect(subject.frameToTime(3.5)).toBe(3);
-      expect(subject.frameToTime(3.9)).toBe(3);
+      expect(subject.timeToFrame(3.1)).toBe(3);
+      expect(subject.timeToFrame(3.5)).toBe(3);
+      expect(subject.timeToFrame(3.9)).toBe(3);
     });
 
     it('returns frame exactly at frame time', () => {
-      expect(subject.frameToTime(0)).toBe(0);
-      expect(subject.frameToTime(1)).toBe(1);
-      expect(subject.frameToTime(2)).toBe(2);
-      expect(subject.frameToTime(3)).toBe(3);
+      expect(subject.timeToFrame(0)).toBe(0);
+      expect(subject.timeToFrame(1)).toBe(1);
+      expect(subject.timeToFrame(2)).toBe(2);
+      expect(subject.timeToFrame(3)).toBe(3);
     });
 
     it('returns positive infinity for times after duration', () => {
-      expect(subject.frameToTime(4)).toBePositiveInfinity();
-      expect(subject.frameToTime(100)).toBePositiveInfinity();
+      expect(subject.timeToFrame(4)).toBePositiveInfinity();
+      expect(subject.timeToFrame(100)).toBePositiveInfinity();
     });
 
     it('returns negative infinity for times before 0', () => {
-      expect(subject.frameToTime(-1)).toBeNegativeInfinity();
+      expect(subject.timeToFrame(-1)).toBeNegativeInfinity();
     });
 
     it('on empty timelines returns infinity', () => {
       const subject = new Timeline([], 0);
-      expect(subject.frameToTime(0)).toBePositiveInfinity();
-      expect(subject.frameToTime(0.1)).toBePositiveInfinity();
-      expect(subject.frameToTime(-0.1)).toBeNegativeInfinity();
+      expect(subject.timeToFrame(0)).toBePositiveInfinity();
+      expect(subject.timeToFrame(0.1)).toBePositiveInfinity();
+      expect(subject.timeToFrame(-0.1)).toBeNegativeInfinity();
     });
   });
 
@@ -89,44 +89,44 @@ describe('Timeline', () => {
     });
 
     it('returns first frame for times in range of first frame', () => {
-      expect(subject.frameToTime(0.1)).toBe(0);
-      expect(subject.frameToTime(0.5)).toBe(0);
-      expect(subject.frameToTime(0.9)).toBe(0);
+      expect(subject.timeToFrame(0.1)).toBe(0);
+      expect(subject.timeToFrame(0.5)).toBe(0);
+      expect(subject.timeToFrame(0.9)).toBe(0);
     });
 
     it('returns second frame for times in range of second frame', () => {
-      expect(subject.frameToTime(1.1)).toBe(1);
-      expect(subject.frameToTime(1.5)).toBe(1);
-      expect(subject.frameToTime(1.9)).toBe(1);
+      expect(subject.timeToFrame(1.1)).toBe(1);
+      expect(subject.timeToFrame(1.5)).toBe(1);
+      expect(subject.timeToFrame(1.9)).toBe(1);
     });
 
     it('returns second last for times in range of last frame', () => {
-      expect(subject.frameToTime(3.1)).toBe(3);
-      expect(subject.frameToTime(3.5)).toBe(3);
-      expect(subject.frameToTime(3.9)).toBe(3);
+      expect(subject.timeToFrame(3.1)).toBe(3);
+      expect(subject.timeToFrame(3.5)).toBe(3);
+      expect(subject.timeToFrame(3.9)).toBe(3);
     });
 
     it('returns frame exactly at frame time', () => {
-      expect(subject.frameToTime(0)).toBe(0);
-      expect(subject.frameToTime(1)).toBe(1);
-      expect(subject.frameToTime(2)).toBe(2);
-      expect(subject.frameToTime(3)).toBe(3);
+      expect(subject.timeToFrame(0)).toBe(0);
+      expect(subject.timeToFrame(1)).toBe(1);
+      expect(subject.timeToFrame(2)).toBe(2);
+      expect(subject.timeToFrame(3)).toBe(3);
     });
 
     it('returns positive infinity for times after duration', () => {
-      expect(subject.frameToTime(4)).toBePositiveInfinity();
-      expect(subject.frameToTime(100)).toBePositiveInfinity();
+      expect(subject.timeToFrame(4)).toBePositiveInfinity();
+      expect(subject.timeToFrame(100)).toBePositiveInfinity();
     });
 
     it('returns negative infinity for times before 0', () => {
-      expect(subject.frameToTime(-1)).toBeNegativeInfinity();
+      expect(subject.timeToFrame(-1)).toBeNegativeInfinity();
     });
 
     it('on empty timelines returns infinity', () => {
       const subject = new Timeline([], 0);
-      expect(subject.frameToTime(0)).toBePositiveInfinity();
-      expect(subject.frameToTime(0.1)).toBePositiveInfinity();
-      expect(subject.frameToTime(-0.1)).toBeNegativeInfinity();
+      expect(subject.timeToFrame(0)).toBePositiveInfinity();
+      expect(subject.timeToFrame(0.1)).toBePositiveInfinity();
+      expect(subject.timeToFrame(-0.1)).toBeNegativeInfinity();
     });
   });
 
@@ -137,23 +137,23 @@ describe('Timeline', () => {
     });
 
     it('returns frame times', () => {
-      expect(subject.timeToFrame(0)).toBe(0);
-      expect(subject.timeToFrame(1)).toBe(0.2);
-      expect(subject.timeToFrame(2)).toBe(0.4);
-      expect(subject.timeToFrame(3)).toBe(0.6);
+      expect(subject.frameToTime(0)).toBe(0);
+      expect(subject.frameToTime(1)).toBe(0.2);
+      expect(subject.frameToTime(2)).toBe(0.4);
+      expect(subject.frameToTime(3)).toBe(0.6);
     });
 
     it('returns positive infinity for frame number past end', () => {
-      expect(subject.timeToFrame(4)).toBePositiveInfinity();
+      expect(subject.frameToTime(4)).toBePositiveInfinity();
     });
 
     it('ignores frame fractions ', () => {
-      expect(subject.timeToFrame(0.1)).toBe(0);
-      expect(subject.timeToFrame(1.9)).toBe(0.2);
+      expect(subject.frameToTime(0.1)).toBe(0);
+      expect(subject.frameToTime(1.9)).toBe(0.2);
     });
 
     it('returns negative infinity for frame number before 0', () => {
-      expect(subject.timeToFrame(-1)).toBeNegativeInfinity();
+      expect(subject.frameToTime(-1)).toBeNegativeInfinity();
     });
   });
 });

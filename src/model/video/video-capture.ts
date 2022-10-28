@@ -51,6 +51,8 @@ export class VideoCapture {
 
     // Send ctrl-c to end the recording.
     await shellStream.write('\x03');
+    await shellStream.write('\x03');
+    await shellStream.write('\x03');
     shellStream.close();
     // TODO: The stream is never correctly closed, which would be a good signal to understand
     // when the recording is completely written to disk.

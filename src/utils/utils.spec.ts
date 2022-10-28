@@ -90,7 +90,6 @@ describe('asciiStringToBytes', () => {
 
   it('returns buffer with ascii bytes', () => {
     const actual = asciiStringToBytes('foo');
-    console.log(actual);
     const expected = new Uint8Array([102, 111, 111]);
 
     expect(arrayBufferEquals(actual, expected)).toBeTrue();

@@ -35,6 +35,7 @@ import { BLOB_STORAGE_FACTORY, OpfsBlobStorage } from '../storage/blob-storage';
 import { Preferences } from '../storage/preferences';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 
 @NgModule({
   declarations: [AppComponent, MotionViewerComponent, RecordingViewerComponent],
@@ -50,6 +51,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     AppRoutingModule,
     MatDividerModule,
     MatProgressSpinnerModule,
+    KeyboardShortcutsModule.forRoot(),
   ],
   providers: [
     {

@@ -17,6 +17,7 @@
     "idb": "^7.1.0",
     "jmuxer": "^2.0.5",
     "mp4box": "^0.5.2",
+    "ng-keyboard-shortcuts": "^13.0.8",
     "protobufjs": "^7.1.2",
     "rxjs": "~7.5.0",
     "stream-browserify": "^3.0.0",

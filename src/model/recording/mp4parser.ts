@@ -45,10 +45,8 @@ export interface FrameMetadata {
 }
 
 export async function loadVideoMetadata(
-  storage: BlobStorage,
-  options?: { readFrameData: boolean }
+  storage: BlobStorage
 ): Promise<VideoMetadata> {
-  const readFrameData = options?.readFrameData ?? false;
   let parseError: string | undefined;
   let fileInfo: FileInfo | undefined;
   let videoTrack: VideoTrack | undefined;
@@ -75,9 +73,7 @@ export async function loadVideoMetadata(
     // extract as all metadata stamples to parse winscope metadata.
     fileInfo.metadataTracks.forEach(({ id }) => parser.setExtractionOptions(id, 'metadata'));
 
-    if (readFrameData) {
-      parser.start();
-    }
+    parser.start();
   };
 
   const frames: FrameMetadata[] = [];

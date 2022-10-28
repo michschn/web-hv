@@ -32,10 +32,11 @@ import { GraphComponent } from './timeline-view/graph/graph.component';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { KeyboardShortcutsModule } from 'ng-keyboard-shortcuts';
 
 @NgModule({
   declarations: [VideoViewComponent, TimelineViewComponent, OscilloscopeConfigViewComponent, VideoControlsComponent, GraphComponent],
-  imports: [MatExpansionModule, CommonModule, DragDropModule, MatButtonModule, MatIconModule, MatSliderModule, MatSlideToggleModule, MatMenuModule, ScrollingModule, MatCheckboxModule, MatInputModule, FormsModule],
+  imports: [MatExpansionModule, CommonModule, DragDropModule, MatButtonModule, MatIconModule, MatSliderModule, MatSlideToggleModule, MatMenuModule, ScrollingModule, MatCheckboxModule, MatInputModule, FormsModule, KeyboardShortcutsModule],
   exports: [VideoViewComponent, OscilloscopeConfigViewComponent, TimelineViewComponent],
 })
 export class UiModule {}

@@ -83,7 +83,6 @@ export class LiveViewSource extends EventTarget implements VideoSource, Disposab
     this._playState = new PlayState(stream, jMuxer, videoElement);
 
     videoElement.addEventListener('loadedmetadata', () => {
-      console.log('metadata changed');
       this._width = videoElement.videoWidth;
       this._height = videoElement.videoHeight;
       this.dispatchEvent(new CustomEvent('metadata-changed', {}));

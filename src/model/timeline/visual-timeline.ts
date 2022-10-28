@@ -51,7 +51,7 @@ export class VisualTimeline extends EventTarget {
 
   /** Pixel-value that marks the beginning of the given frame. */
   frameToPx(frame: number): number {
-    return this.timeToPx(this.timeline.timeToFrame(frame));
+    return this.timeToPx(this.timeline.frameToTime(frame));
   }
 
   /** Video-time associated with the given pixel value. */
@@ -65,6 +65,6 @@ export class VisualTimeline extends EventTarget {
 
   /** Frame number associated with the given pixel value. */
   pxToFrame(px: number): number {
-    return this.timeline.frameToTime(this.pxToTime(px));
+    return this.timeline.timeToFrame(this.pxToTime(px));
   }
 }

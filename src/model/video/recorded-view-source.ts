@@ -29,24 +29,27 @@ export class RecordedViewSource extends EventTarget implements SeekableVideoSour
     recordingUrl: string,
     readonly width: number,
     readonly height: number,
-    readonly duration: number
+    readonly duration: number,
+    readonly frameTimes: number[]
   ) {
     super();
     const videoElement = document.createElement('video');
     videoElement.muted = true;
     videoElement.src = recordingUrl;
+
+    videoElement.addEventListener('timeupdate', e => this.dispatchEvent(new Event('timeupdate')));
+
     this._videoElement = videoElement;
   }
 
   static async createVideoSource(storage: BlobStorage): Promise<RecordedViewSource> {
-    const { width, height, duration_nanos } = await loadVideoMetadata(storage, {
-      readFrameData: true,
-    });
+    const { width, height, duration_nanos, videoFrames } = await loadVideoMetadata(storage);
     return new RecordedViewSource(
       await storage.objectUrl(BLOB_SCREENRECORDING_NAME),
       width,
       height,
-      Number(duration_nanos) / 1_000_000_000
+      Number(duration_nanos) / 1_000_000_000,
+      videoFrames.map(frame => frame.time)
     );
   }
 

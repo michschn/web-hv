@@ -52,7 +52,7 @@ export class Timeline {
    * Each frame starts at the frame time, and just before the next frame's start time, or duration
    * if it's the last frame.
    */
-  frameToTime(timeSeconds: number): number {
+  timeToFrame(timeSeconds: number): number {
     if (timeSeconds < 0) return Number.NEGATIVE_INFINITY;
     if (timeSeconds >= this.duration) return Number.POSITIVE_INFINITY;
 
@@ -81,7 +81,7 @@ export class Timeline {
   /**
    * Start time of the frame with `frameNumber`.
    */
-  timeToFrame(frameNumber: number): number {
+  frameToTime(frameNumber: number): number {
     frameNumber = Math.floor(frameNumber);
     if (frameNumber < 0) return Number.NEGATIVE_INFINITY;
     const frameTimes = this.frameTimes;

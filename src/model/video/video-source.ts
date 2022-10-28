@@ -60,6 +60,8 @@ export interface SeekableVideoSource extends VideoSource {
    */
   readonly duration: number;
 
+  readonly frameTimes: number[];
+
   /**
    * Seeks the media to the given time, represented as a double-precision floating-point
    * value in seconds.

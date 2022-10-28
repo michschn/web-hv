@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, NgZone, QueryList, ViewChild, ViewChildren, ViewContainerRef, } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, QueryList, ViewChild, ViewChildren, ViewContainerRef, } from '@angular/core';
 import { checkNotNull } from '../../utils/preconditions';
 import { Recording } from '../../model/recording/recording';
 import { CdkDragRelease, CdkDragStart, DragRef, Point } from '@angular/cdk/drag-drop';
@@ -22,14 +22,21 @@ import { SeekableVideoSource } from '../../model/video/video-source';
 import { ViewConfig } from '../../model/view-config/view-config';
 import { GraphComponent } from './graph/graph.component';
 import { VisualTimeline } from '../../model/timeline/visual-timeline';
+import { Disposer } from '../../utils/disposer';
 
 @Component({
   selector: 'ui-timeline-view',
   templateUrl: './timeline-view.component.html',
   styleUrls: ['./timeline-view.component.scss'],
 })
-export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
+export class TimelineViewComponent implements AfterViewInit, AfterViewChecked, OnDestroy {
+  private _recordingInputDisposer = new Disposer(true);
+
   constructor(private readonly viewRef: ViewContainerRef, private zone: NgZone) {}
+
+  ngOnDestroy(): void {
+    this._recordingInputDisposer.dispose();
+  }
 
   private _observer = new ResizeObserver(() => {
     this.zone.run(() => {
@@ -48,11 +55,18 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
   @Input()
   set recording(value: Recording | undefined) {
     if (value === this.recording) return;
+    this._recordingInputDisposer.dispose();
     this._recording = value;
     this.videoSource = value?.videoSource.seekable ? value?.videoSource : undefined;
     this.visualTimeline = value?.timeline
       ? new VisualTimeline(this.canvas.nativeElement.width, value.timeline)
       : undefined;
+
+    if (this.videoSource) {
+      this._recordingInputDisposer.addListener(this.videoSource, 'timeupdate', () =>
+        this._updatePlayHead()
+      );
+    }
 
     this._scheduleRender();
   }
@@ -82,19 +96,20 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     this._isPlaying = isPlaying;
     if (isPlaying) {
       const self = this;
-      function updatePlayHead() {
-        if (!self.visualTimeline || !self.videoSource) return;
-
-        const playheadX = self.visualTimeline.timeToPx(self.videoSource.currentTime);
-        if (isFinite(playheadX)) {
-          self.timeHandlePosition = { x: playheadX, y: 0 };
-        }
-        if (self._isPlaying) {
-          requestAnimationFrame(updatePlayHead);
-        }
+      function continuouslyUpdatePlayhead() {
+        self._updatePlayHead();
+        if (self._isPlaying) requestAnimationFrame(continuouslyUpdatePlayhead);
       }
+      requestAnimationFrame(continuouslyUpdatePlayhead);
+    }
+  }
 
-      requestAnimationFrame(updatePlayHead);
+  private _updatePlayHead() {
+    if (!this.visualTimeline || !this.videoSource) return;
+
+    const playheadX = this.visualTimeline.timeToPx(this.videoSource.currentTime);
+    if (isFinite(playheadX)) {
+      this.timeHandlePosition = { x: playheadX, y: 0 };
     }
   }
 
@@ -121,7 +136,7 @@ export class TimelineViewComponent implements AfterViewInit, AfterViewChecked {
     else if (frame === Number.POSITIVE_INFINITY) frame = this.visualTimeline.timeline.frameCount;
 
     if (this.videoSource) {
-      this.videoSource.seek(this.visualTimeline.timeline.timeToFrame(frame));
+      this.videoSource.seek(this.visualTimeline.timeline.frameToTime(frame));
     }
 
     return {

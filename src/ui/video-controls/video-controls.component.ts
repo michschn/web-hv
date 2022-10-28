@@ -19,6 +19,8 @@ import { SeekableVideoSource } from '../../model/video/video-source';
 import { Disposer } from '../../utils/disposer';
 import { checkNotNull } from '../../utils/preconditions';
 import { Preferences } from '../../storage/preferences';
+import { ShortcutEventOutput, ShortcutInput } from 'ng-keyboard-shortcuts';
+import { frameBinarySearch } from '../../utils/video';
 
 @Component({
   selector: 'ui-video-controls',
@@ -51,6 +53,19 @@ export class VideoControlsComponent implements OnDestroy {
 
   get playStateIcon() {
     return this._source?.state == 'play' ? 'pause' : 'play_arrow';
+  }
+
+  moveFrame(framesOffset: number) {
+    const videoSource = checkNotNull(this._source);
+    videoSource.stop();
+
+    const currentTime = videoSource.currentTime;
+    const frameTimes = videoSource.frameTimes;
+    const thisFrame = frameBinarySearch(currentTime, frameTimes);
+    const nextFrame = thisFrame + framesOffset;
+    const targetTime = frameTimes[Math.min(Math.max(nextFrame, 0), frameTimes.length - 1)];
+
+    return videoSource.seek(targetTime);
   }
 
   togglePlay() {
@@ -86,4 +101,24 @@ export class VideoControlsComponent implements OnDestroy {
     this._preferences.playbackRate = rate;
     checkNotNull(this._source).playbackRate = rate;
   }
+
+  shortcuts: ShortcutInput[] = [
+    {
+      key: ['left'],
+      label: 'Previous frame',
+      command: (output: ShortcutEventOutput) => this.moveFrame(-1),
+    },
+
+    {
+      key: ['right'],
+      label: 'Next frame',
+      command: (output: ShortcutEventOutput) => this.moveFrame(+1),
+    },
+
+    {
+      key: ['space'],
+      label: 'play/pause',
+      command: (output: ShortcutEventOutput) => this.togglePlay(),
+    },
+  ];
 }
